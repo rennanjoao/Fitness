@@ -1,0 +1,1295 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Protocolo de Performance - Vilma Alves</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --primary: #c81d1d;
+      --primary-dark: #a01515;
+      --primary-light: #ff4444;
+      --carb-high: #2ecc71;
+      --carb-low: #f1c40f;
+    }
+
+    [data-theme="dark"] {
+      --bg: #0a0a0a; --surface: #1a1a1a; --surface-hover: #242424;
+      --text: #ffffff; --text-secondary: #a0a0a0; --border: #2a2a2a;
+      --shadow: rgba(0, 0, 0, 0.4);
+    }
+
+    [data-theme="light"] {
+      --bg: #f5f5f5; --surface: #ffffff; --surface-hover: #f0f0f0;
+      --text: #1a1a1a; --text-secondary: #666666; --border: #e0e0e0;
+      --shadow: rgba(0, 0, 0, 0.1);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.6;
+      transition: background 0.3s ease, color 0.3s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .header {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      padding: 3rem 2rem; text-align: center; box-shadow: 0 4px 20px rgba(200, 29, 29, 0.3);
+      position: relative;
+    }
+
+    .theme-toggle {
+      position: absolute; top: 2rem; right: 2rem;
+      background: rgba(255, 255, 255, 0.2); border: none;
+      width: 48px; height: 48px; border-radius: 50%; cursor: pointer;
+      font-size: 1.5rem; display: flex; align-items: center; justify-content: center;
+      transition: all 0.3s ease; backdrop-filter: blur(10px);
+    }
+    .theme-toggle:hover { background: rgba(255, 255, 255, 0.3); transform: rotate(180deg) scale(1.1); }
+
+    .header h1 { font-size: 2.8rem; font-weight: 700; margin-bottom: 0.75rem; animation: fadeInDown 0.6s ease; color: white; }
+    .header p { font-size: 1.2rem; opacity: 0.95; animation: fadeInUp 0.6s ease; color: white; }
+
+    @keyframes fadeInDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes slideIn { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
+    @keyframes scaleIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+    @keyframes fadeInScale { from { opacity: 0; transform: scale(0.97); } to { opacity: 1; transform: scale(1); } }
+
+    .stats-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1.5rem;
+      max-width: 1400px; margin: 4rem auto 0; padding: 0 2rem; position: relative; z-index: 10;
+    }
+    .stat-card {
+      background: var(--surface); padding: 2rem 1.5rem; border-radius: 16px; border: 1px solid var(--border);
+      text-align: center; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 4px 12px var(--shadow);
+      animation: scaleIn 0.4s ease backwards;
+    }
+    .stat-card:hover { transform: translateY(-8px); box-shadow: 0 12px 24px var(--shadow); border-color: var(--primary); }
+    .stat-label { color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
+    .stat-value { font-size: 2rem; font-weight: 700; color: var(--primary); display: inline-block; }
+
+    .container { max-width: 1400px; margin: 0 auto; padding: 4rem 2rem; }
+    .section { margin-bottom: 4rem; animation: slideIn 0.5s ease; }
+    .section-title { font-size: 2rem; margin-bottom: 2rem; display: flex; align-items: center; gap: 1rem; font-weight: 700; }
+    .section-title::before { content: ''; width: 5px; height: 32px; background: var(--primary); border-radius: 3px; }
+
+    .tools-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; }
+    .tool-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+      padding: 2rem; text-align: center; cursor: pointer; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 2px 8px var(--shadow); position: relative; overflow: hidden;
+    }
+    .tool-card::before {
+      content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      background: linear-gradient(135deg, transparent, rgba(200, 29, 29, 0.05)); opacity: 0; transition: opacity 0.3s;
+    }
+    .tool-card:hover::before { opacity: 1; }
+    .tool-card:hover { transform: translateY(-8px) scale(1.02); border-color: var(--primary); box-shadow: 0 12px 32px var(--shadow); }
+    .tool-icon { font-size: 3rem; margin-bottom: 1.25rem; transition: transform 0.3s ease; }
+    .tool-card:hover .tool-icon { transform: scale(1.2) rotate(5deg); }
+    .tool-card h3 { margin-bottom: 0.75rem; font-size: 1.25rem; font-weight: 700; }
+    .tool-card p { color: var(--text-secondary); font-size: 0.95rem; }
+
+    .tabs { display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 5px; }
+    .tab {
+      background: var(--surface); border: 2px solid var(--border); color: var(--text);
+      padding: 1rem 2rem; border-radius: 12px; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      font-size: 1rem; font-weight: 600; position: relative; overflow: hidden; white-space: nowrap; flex-shrink: 0;
+    }
+    .tab::before {
+      content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(200, 29, 29, 0.1), transparent); transition: left 0.5s;
+    }
+    .tab:hover::before { left: 100%; }
+    .tab:hover { background: var(--surface-hover); border-color: var(--primary); transform: translateY(-2px); }
+    .tab.active { background: var(--primary); border-color: var(--primary); color: white; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(200, 29, 29, 0.4); }
+
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 2rem; margin-bottom: 1.5rem; box-shadow: 0 2px 8px var(--shadow); transition: all 0.3s ease; }
+    .meal-card { display: none; }
+    .meal-card.active { display: block; animation: fadeInScale 0.4s ease; }
+    
+    .meal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 2px solid var(--border); flex-wrap: wrap; gap: 1rem;}
+    .meal-title { font-size: 1.75rem; font-weight: 700; }
+    .meal-badge { background: var(--primary); padding: 0.5rem 1.2rem; border-radius: 20px; font-size: 0.85rem; font-weight: 700; color: white; text-transform: uppercase; letter-spacing: 1px;}
+    
+    .meal-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; }
+    .act-btn {
+      background: var(--bg); border: 1px solid var(--border); color: var(--text-secondary);
+      font-size: 0.8rem; padding: 8px 16px; border-radius: 8px; cursor: pointer; transition: all 0.2s; font-weight: 600;
+    }
+    .act-btn:hover { border-color: var(--primary); color: var(--text); }
+    .act-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+    .act-btn.alto.active { background: var(--carb-high); border-color: var(--carb-high); color: #fff; }
+    .act-btn.baixo.active { background: var(--carb-low); border-color: var(--carb-low); color: #111; }
+
+    .food-list { list-style: none; display: flex; flex-direction: column; gap: 1rem; }
+    .food-item { padding: 1.5rem; background: var(--bg); border-radius: 12px; display: flex; flex-direction: column; gap: 1rem; transition: all 0.3s ease; border: 1px solid transparent; }
+    .food-item:hover { background: var(--surface-hover); border-color: var(--primary); transform: translateX(4px); }
+    .food-item-header { display: flex; align-items: flex-start; gap: 1.5rem; }
+    .food-icon { width: 48px; height: 48px; background: var(--primary); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; flex-shrink: 0; }
+    
+    .subsection { margin-top: 2rem; padding: 1.5rem; background: var(--bg); border-radius: 12px; border-left: 4px solid var(--primary); }
+    .subsection h4 { color: var(--primary); margin-bottom: 1rem; font-size: 1.25rem; font-weight: 700; }
+    
+    .options-grid { display: grid; gap: 1.5rem; margin-top: 1.5rem; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+    .option-card { background: var(--surface); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border); transition: all 0.3s ease; }
+    .option-card:hover { border-color: var(--primary); transform: translateY(-2px); box-shadow: 0 4px 12px var(--shadow); }
+    .option-card h5 { color: var(--primary); margin-bottom: 1rem; font-size: 1.1rem; font-weight: 700; }
+
+    .peso-pronto { display: none; }
+    .show-pronto .peso-pronto { display: inline; color: #e67e22; font-weight: 700;}
+    .show-pronto .peso-cru { display: none; }
+    .peso-cru { font-weight: 700; color: var(--primary-light); }
+    
+    .val-carbo { transition: color 0.2s; }
+    .show-alto .val-carbo { color: var(--carb-high); font-weight: 600; }
+    .show-baixo .val-carbo { color: var(--carb-low); font-weight: 600; }
+    
+    .base-label { display: inline-block; background: var(--surface-hover); padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: 700; color: var(--text); border: 1px solid var(--border); margin-right: 5px; margin-bottom: 5px;}
+    
+    .nested-options { list-style: none; padding-left: 0; margin-top: 0.5rem; }
+    .nested-options li { position: relative; padding-left: 1.5rem; margin-bottom: 0.8rem; line-height: 1.5; color: var(--text-secondary); }
+    .nested-options li::before { content: '👉'; position: absolute; left: 0; top: 0; font-size: 0.9rem; }
+    .nested-options strong { color: var(--text); }
+
+    .btn { background: var(--primary); color: white; border: none; padding: 1.25rem 2rem; border-radius: 12px; cursor: pointer; font-size: 1.05rem; font-weight: 600; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); width: 100%; position: relative; overflow: hidden; margin-top: 1rem;}
+    .btn:hover { background: var(--primary-dark); transform: translateY(-3px); box-shadow: 0 6px 20px rgba(200, 29, 29, 0.5); }
+    .btn:active { transform: translateY(-1px); }
+    .btn-secondary { background: var(--surface); color: var(--text); border: 2px solid var(--border); margin-top: 1rem; }
+    .btn-secondary:hover { background: var(--surface-hover); border-color: var(--primary); box-shadow: 0 6px 20px var(--shadow); transform: translateY(-3px);}
+
+    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); z-index: 1000; align-items: center; justify-content: center; padding: 1.5rem; backdrop-filter: blur(4px); animation: fadeIn 0.3s ease; }
+    .modal.active { display: flex; }
+    .modal-content { background: var(--surface); border-radius: 20px; max-width: 900px; width: 100%; max-height: 90vh; display: flex; flex-direction: column; border: 1px solid var(--border); box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5); animation: modalSlideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+    @keyframes modalSlideIn { from { opacity: 0; transform: translateY(-50px) scale(0.9); } to { opacity: 1; transform: translateY(0) scale(1); } }
+    .modal-header { padding: 2rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: var(--surface); border-radius: 20px 20px 0 0; flex-shrink: 0; }
+    .modal-header h2 { font-size: 1.5rem; font-weight: 700; }
+    .close-btn { background: var(--bg); border: 1px solid var(--border); color: var(--text); font-size: 1.5rem; cursor: pointer; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 10px; transition: all 0.3s ease; }
+    .close-btn:hover { background: var(--primary); color: white; transform: rotate(90deg); border-color: var(--primary); }
+    .modal-body { padding: 2rem; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+
+    .calendar-container { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1rem; margin-top: 1rem; }
+    .calendar-day { background: var(--surface); border: 2px solid var(--border); border-radius: 12px; padding: 1rem; min-height: 180px; transition: all 0.3s ease; }
+    .calendar-day:hover { transform: translateY(-4px); box-shadow: 0 8px 24px var(--shadow); }
+    .day-header { font-weight: 700; font-size: 0.9rem; margin-bottom: 0.5rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem;}
+    .day-number { font-size: 1.2rem; font-weight: 700; margin-bottom: 1rem; }
+    .meal-preview { font-size: 0.85rem; margin-bottom: 0.5rem; padding: 0.5rem; background: var(--bg); border-radius: 8px; line-height: 1.4; color: var(--text-secondary);}
+    .meal-preview strong { color: var(--text); }
+
+    .shopping-item { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1rem; background: var(--bg); border-radius: 12px; margin-bottom: 0.75rem; border: 1px solid transparent; transition: all 0.2s ease; cursor: pointer;}
+    .shopping-item:hover { border-color: var(--primary); background: var(--surface-hover); }
+    .shopping-item.selected { background: var(--surface-hover); border-color: var(--primary); }
+    
+    .shop-item-left { display: flex; align-items: center; gap: 0.8rem; flex: 1;}
+    .shop-item-left input[type="checkbox"] { width: 20px; height: 20px; cursor: pointer; accent-color: var(--primary); }
+    .shop-item-left label { cursor: pointer; font-size: 0.95rem; font-weight: 500;}
+    
+    .freq-select { padding: 0.4rem; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font-family: monospace; font-size: 16px; outline: none; }
+    .freq-select:focus { border-color: var(--primary); }
+    
+    .shopping-result { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color: white; padding: 2rem; border-radius: 16px; margin-top: 2rem; box-shadow: 0 8px 24px rgba(200, 29, 29, 0.3); }
+    .shopping-result h3 { margin-bottom: 1.5rem; font-size: 1.5rem; }
+
+    .form-group { margin-bottom: 1.5rem; }
+    .form-group label { display: block; margin-bottom: 0.75rem; color: var(--text-secondary); font-weight: 600; font-size: 0.95rem; }
+    .form-group input, .form-group select { width: 100%; padding: 1rem; background: var(--bg); border: 2px solid var(--border); border-radius: 12px; color: var(--text); font-size: 16px; transition: all 0.3s ease; }
+    .form-group input:focus, .form-group select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(200, 29, 29, 0.1); }
+    .suggestions { background: var(--bg); border: 2px solid var(--border); border-top: 0; border-radius: 0 0 12px 12px; max-height: 200px; overflow-y: auto; }
+    .suggestion-item { padding: 1rem; cursor: pointer; transition: all 0.2s ease; border-bottom: 1px solid var(--border); }
+    .suggestion-item:last-child { border-bottom: none; }
+    .suggestion-item:hover { background: var(--surface-hover); padding-left: 1.5rem; }
+    .result-box { background: var(--bg); padding: 2rem; border-radius: 12px; border-left: 4px solid var(--primary); margin-top: 1.5rem; animation: slideIn 0.4s ease; }
+
+    .note-box { background: rgba(200, 29, 29, 0.08); border: 2px dashed var(--primary); padding: 1.5rem; border-radius: 12px; }
+
+    @media (max-width: 768px) {
+      .header { padding: 2rem 1rem; }
+      .header h1 { font-size: 2rem; }
+      .theme-toggle { top: 1rem; right: 1rem; width: 40px; height: 40px; }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 1rem; padding: 0 1rem; margin-top: -3rem; }
+      .stat-card { padding: 1.5rem 1rem; }
+      .container { padding: 3rem 1rem; }
+      .tabs { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 5px; }
+      .tab { flex-shrink: 0; }
+      .tools-grid { grid-template-columns: 1fr; }
+      .modal { padding: 0; }
+      .modal-content { margin: 0; border-radius: 0; height: 100vh; max-height: 100vh; width: 100%; border: none; }
+      .modal-header { border-radius: 0; }
+      .calendar-container { grid-template-columns: 1fr; }
+      .meal-actions { justify-content: flex-start; margin-top: 0.5rem;}
+    }
+  </style>
+</head>
+<body data-theme="dark">
+
+  <div class="header">
+    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Alternar tema">
+      <span id="themeIcon">🌙</span>
+    </button>
+    <h1>💪 Recomposição Corporal</h1>
+    <p>Vilma Alves — Planejamento Estratégico TACO/FODMAPs</p>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-card"><div class="stat-label">Idade</div><div class="stat-value" contenteditable="true">47</div></div>
+    <div class="stat-card"><div class="stat-label">Peso</div><div class="stat-value" contenteditable="true">71 kg</div></div>
+    <div class="stat-card"><div class="stat-label">Altura</div><div class="stat-value" contenteditable="true">1,64 m</div></div>
+    <div class="stat-card"><div class="stat-label">Dieta Base</div><div class="stat-value" contenteditable="true">~2100 kcal</div></div>
+    <div class="stat-card"><div class="stat-label">Hidratação</div><div class="stat-value" contenteditable="true">3–4 L</div></div>
+    <div class="stat-card"><div class="stat-label">Divisão</div><div class="stat-value">4×/sem</div></div>
+  </div>
+
+  <div class="container">
+    <section class="section">
+      <h2 class="section-title">🛠️ Ferramentas Rápidas</h2>
+      <div class="tools-grid">
+        <div class="tool-card" onclick="openModal('workout')">
+          <div class="tool-icon">🏋️</div>
+          <h3>Treino Biomecânico</h3>
+          <p>Plano Feminino (A, B, C, D)</p>
+        </div>
+        <div class="tool-card" onclick="openModal('suplementos')">
+          <div class="tool-icon">💊</div>
+          <h3>Suplementação</h3>
+          <p>Fórmulas Diurnas e Noturnas</p>
+        </div>
+        <div class="tool-card" onclick="openModal('calendar')">
+          <div class="tool-icon">📅</div>
+          <h3>Planejamento Semanal</h3>
+          <p>Ciclo de carboidratos</p>
+        </div>
+        <div class="tool-card" onclick="openModal('shopping')">
+          <div class="tool-icon">🛒</div>
+          <h3>Lista de Compras</h3>
+          <p>Gerador Inteligente em TXT</p>
+        </div>
+        <div class="tool-card" onclick="openModal('proteinas')">
+          <div class="tool-icon">🥩</div>
+          <h3>Dicas: Proteína</h3>
+          <p>Cortes magros e opções</p>
+        </div>
+        <div class="tool-card" onclick="openModal('fodmap')">
+          <div class="tool-icon">🥬</div>
+          <h3>Guia FODMAPs</h3>
+          <p>Gestão intestinal</p>
+        </div>
+        <div class="tool-card" onclick="openModal('calc')">
+          <div class="tool-icon">🧮</div>
+          <h3>Calculadora TACO+</h3>
+          <p>Substitua alimentos exatos</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2 class="section-title">🍽️ Plano Alimentar</h2>
+      
+      <div class="tabs">
+        <button class="tab active" onclick="showMeal(1, event)">Refeição 1</button>
+        <button class="tab" onclick="showMeal(2, event)">Refeição 2 (Almoço)</button>
+        <button class="tab" onclick="showMeal(3, event)">Refeição 3 (Tarde)</button>
+        <button class="tab" onclick="showMeal(4, event)">Refeição 4 (Zero Carbo)</button>
+        <button class="tab" style="background: rgba(200,29,29,0.1); border-color: var(--primary); color: var(--primary);" onclick="showMeal('strategy', event)">🔥 Diretrizes</button>
+      </div>
+
+      <div class="meal-card active" id="meal1">
+        <div class="card">
+          <div class="meal-header">
+            <h3 class="meal-title">Refeição 1 — Manhã</h3>
+            <div class="meal-actions">
+              <span class="meal-badge">25% Gordura Total</span>
+              <button class="act-btn" onclick="togglePeso(this,'card1')">⚖️ Cru/Pronto</button>
+              <button class="act-btn active" onclick="setCarbo(this,'base','card1')">⏺️ Base</button>
+              <button class="act-btn alto" onclick="setCarbo(this,'alto','card1')">⬆️ Alto</button>
+              <button class="act-btn baixo" onclick="setCarbo(this,'baixo','card1')">⬇️ Baixo</button>
+            </div>
+          </div>
+          <div id="card1">
+            <ul class="food-list">
+              <li class="food-item">
+                <div class="food-item-header">
+                  <div class="food-icon">🍞</div>
+                  <div style="width:100%">
+                    <span class="base-label">CARBOIDRATO (Escolha 1)</span>
+                    <ul class="nested-options">
+                      <li><strong>Opção 1:</strong> <span class="val-carbo" data-base="60g" data-alto="80g" data-baixo="40g">60g</span> Goma de Tapioca</li>
+                      <li><strong>Opção 2:</strong> <span class="val-carbo" data-base="40g" data-alto="55g" data-baixo="30g">40g</span> Aveia em Flocos + 1 Banana média</li>
+                      <li><strong>Opção 3:</strong> <span class="val-carbo" data-base="40g" data-alto="55g" data-baixo="30g">40g</span> Creme de Arroz</li>
+                      <li><strong>Opção Extra:</strong> <span class="val-carbo" data-base="2 fatias" data-alto="3 fatias" data-baixo="1 fatia">2 fatias</span> de Pão Integral <strong>OU</strong> Pão de Milho</li>
+                    </ul>
+                  </div>
+                </div>
+              </li>
+              <li class="food-item">
+                <div class="food-item-header">
+                  <div class="food-icon" style="background:#3498db;">🥚</div>
+                  <div style="width:100%">
+                    <span class="base-label">PROTEÍNA (Escolha 1)</span>
+                    <ul class="nested-options">
+                      <li><strong>Opção 1 (preferida):</strong> 2 ovos inteiros + 2 claras mexidos com manteiga ghee</li>
+                      <li><strong>Opção 2:</strong> <strong class="peso-cru">80g (CRU)</strong><strong class="peso-pronto">~60g (PRONTO)</strong> Frango desfiado ou omelete</li>
+                      <li><strong>Opção 3 (secundária):</strong> 20g Whey Protein Isolado</li>
+                    </ul>
+                  </div>
+                </div>
+              </li>
+              <li class="food-item">
+                <div class="food-item-header">
+                  <div class="food-icon" style="background:var(--carb-low); color:#000;">🥑</div>
+                  <div style="width:100%">
+                    <span class="base-label">GORDURA (Escolha 1)</span>
+                    <ul class="nested-options">
+                      <li><strong>Opção 1:</strong> 10ml Azeite</li>
+                      <li><strong>Opção 2:</strong> 15g Pasta de Amendoim Integral</li>
+                      <li><strong>Opção 3:</strong> 60g Abacate</li>
+                      <li><strong>Opção 4:</strong> 5g Castanha do Pará</li>
+                    </ul>
+                  </div>
+                </div>
+              </li>
+              <li class="food-item">
+                <div class="food-item-header">
+                  <div class="food-icon" style="background:#4a3728;">☕</div>
+                  <div style="width:100%">
+                    <span class="base-label">ACOMPANHAMENTO</span>
+                    Café preto puro (sem açúcar) + Canela em pó
+                  </div>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="meal-card" id="meal2">
+        <div class="card">
+          <div class="meal-header">
+            <h3 class="meal-title">Refeição 2 (Almoço)</h3>
+            <div class="meal-actions">
+              <button class="act-btn" onclick="togglePeso(this,'card2')">⚖️ Cru/Pronto</button>
+              <button class="act-btn active" onclick="setCarbo(this,'base','card2')">⏺️ Base</button>
+              <button class="act-btn alto" onclick="setCarbo(this,'alto','card2')">⬆️ Alto</button>
+              <button class="act-btn baixo" onclick="setCarbo(this,'baixo','card2')">⬇️ Baixo</button>
+            </div>
+          </div>
+          <div id="card2">
+            <ul class="food-list">
+              <li class="food-item">
+                <div class="food-item-header">
+                  <div class="food-icon" style="background:var(--carb-high);">🍚</div>
+                  <div style="width:100%">
+                    <span class="base-label">CARBOIDRATO (Escolha 1)</span>
+                    <ul class="nested-options">
+                      <li style="color:var(--carb-high);"><strong>🔥 Opção 1: Arroz + Feijão</strong><br>
+                        <span class="peso-cru val-carbo" data-base="110g" data-alto="150g" data-baixo="70g">110g</span><span class="peso-pronto val-carbo" data-base="~330g" data-alto="~450g" data-baixo="~210g">~330g</span> Arroz Parboilizado + <span class="peso-pronto val-carbo" data-base="60g" data-alto="60g" data-baixo="60g">60g</span> Feijão (caldo ou pequena quantidade)</li>
+                      <li><strong>Opção 2: Arroz + Batata / Abóbora</strong><br>
+                        <span class="peso-cru val-carbo" data-base="80g" data-alto="110g" data-baixo="50g">80g</span><span class="peso-pronto val-carbo" data-base="~240g" data-alto="~330g" data-baixo="~150g">~240g</span> Arroz Parboilizado + <span class="peso-pronto val-carbo" data-base="160g" data-alto="200g" data-baixo="115g">160g</span> Batata Doce (Ou <span class="val-carbo" data-base="200g" data-alto="250g" data-baixo="145g">200g</span> Batata Inglesa / <span class="val-carbo" data-base="300g" data-alto="370g" data-baixo="215g">300g</span> Abóbora)</li>
+                      <li><strong>Opção 3: Apenas Mandioca</strong><br>
+                        <span class="peso-cru val-carbo" data-base="240g" data-alto="330g" data-baixo="160g">240g</span><span class="peso-pronto val-carbo" data-base="~310g" data-alto="~420g" data-baixo="~205g">~310g</span> Mandioca Crua</li>
+                    </ul>
+                  </div>
+                </div>
+              </li>
+              <li class="food-item">
+                <div class="food-item-header">
+                  <div class="food-icon" style="background:#3498db;">🥩</div>
+                  <div style="width:100%">
+                    <span class="base-label">PROTEÍNA MAGRA (Escolha 1)</span>
+                    <ul class="nested-options">
+                      <li><strong>Opção 1:</strong> <strong class="peso-cru">115g (CRU)</strong><strong class="peso-pronto">~80g (PRONTO)</strong> Peito de Frango, Filé de Frango ou Coxa/Sobrecoxa SEM pele</li>
+                      <li><strong>Opção 2:</strong> <strong class="peso-cru">100g (CRU)</strong><strong class="peso-pronto">~75g (PRONTO)</strong> Patinho Moído, Coxão Mole ou Lagarto</li>
+                      <li><strong>Opção 3:</strong> <strong class="peso-cru">140g (CRU)</strong><strong class="peso-pronto">~105g (PRONTO)</strong> Tilápia ou Lombo Suíno Magro</li>
+                    </ul>
+                  </div>
+                </div>
+              </li>
+              <li class="food-item">
+                <div class="food-item-header">
+                  <div class="food-icon" style="background:var(--surface-hover); color:var(--text);">🥗</div>
+                  <div style="width:100%">
+                    <span class="base-label">MICRONUTRIÇÃO</span>
+                    Salada verde à vontade + Limão / Vinagre de Maçã (Sem Azeite nesta refeição)
+                  </div>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="meal-card" id="meal3">
+        <div class="card">
+          <div class="meal-header">
+            <h3 class="meal-title">Refeição 3 (Tarde)</h3>
+            <div class="meal-actions">
+              <button class="act-btn" onclick="togglePeso(this,'card3')">⚖️ Cru/Pronto</button>
+              <button class="act-btn active" onclick="setCarbo(this,'base','card3')">⏺️ Base</button>
+              <button class="act-btn alto" onclick="setCarbo(this,'alto','card3')">⬆️ Alto</button>
+              <button class="act-btn baixo" onclick="setCarbo(this,'baixo','card3')">⬇️ Baixo</button>
+            </div>
+          </div>
+          <div id="card3">
+            <ul class="food-list">
+              <li class="food-item">
+                <div class="food-item-header">
+                  <div class="food-icon" style="background:var(--carb-high);">🍠</div>
+                  <div style="width:100%">
+                    <span class="base-label">CARBOIDRATO SÓLIDO (Escolha 1)</span>
+                    <ul class="nested-options">
+                      <li style="color:var(--carb-high);"><strong>🔥 Opção 1: Arroz + Feijão</strong><br>
+                        <span class="peso-cru val-carbo" data-base="110g" data-alto="150g" data-baixo="70g">110g</span><span class="peso-pronto val-carbo" data-base="~330g" data-alto="~450g" data-baixo="~210g">~330g</span> Arroz Parboilizado + <span class="peso-pronto val-carbo" data-base="60g" data-alto="60g" data-baixo="60g">60g</span> Feijão (caldo ou pequena quantidade)</li>
+                      <li><strong>Opção 2: Arroz + Batata / Abóbora</strong><br>
+                        <span class="peso-cru val-carbo" data-base="80g" data-alto="110g" data-baixo="50g">80g</span><span class="peso-pronto val-carbo" data-base="~240g" data-alto="~330g" data-baixo="~150g">~240g</span> Arroz Parboilizado + <span class="peso-pronto val-carbo" data-base="160g" data-alto="200g" data-baixo="115g">160g</span> Batata Doce (Ou <span class="val-carbo" data-base="200g" data-alto="250g" data-baixo="145g">200g</span> Batata Inglesa / <span class="val-carbo" data-base="300g" data-alto="370g" data-baixo="215g">300g</span> Abóbora)</li>
+                      <li><strong>Opção 3: Apenas Mandioca</strong><br>
+                        <span class="peso-cru val-carbo" data-base="240g" data-alto="330g" data-baixo="160g">240g</span><span class="peso-pronto val-carbo" data-base="~310g" data-alto="~420g" data-baixo="~205g">~310g</span> Mandioca Crua</li>
+                    </ul>
+                  </div>
+                </div>
+              </li>
+              <li class="food-item">
+                <div class="food-item-header">
+                  <div class="food-icon" style="background:#3498db;">🥩</div>
+                  <div style="width:100%">
+                    <span class="base-label">PROTEÍNA MAGRA (Escolha 1)</span>
+                    <ul class="nested-options">
+                      <li><strong>Opção 1:</strong> <strong class="peso-cru">115g (CRU)</strong><strong class="peso-pronto">~80g (PRONTO)</strong> Peito de Frango, Filé de Frango ou Coxa/Sobrecoxa SEM pele</li>
+                      <li><strong>Opção 2:</strong> <strong class="peso-cru">100g (CRU)</strong><strong class="peso-pronto">~75g (PRONTO)</strong> Patinho Moído, Coxão Mole ou Lagarto</li>
+                      <li><strong>Opção 3:</strong> <strong class="peso-cru">140g (CRU)</strong><strong class="peso-pronto">~105g (PRONTO)</strong> Tilápia ou Lombo Suíno Magro</li>
+                    </ul>
+                  </div>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="meal-card" id="meal4">
+        <div class="card">
+          <div class="meal-header">
+            <h3 class="meal-title">Refeição 4 (Zero Carbo)</h3>
+            <div class="meal-actions">
+              <span class="meal-badge" style="background:#222; border:1px solid #444;">CETOGÊNICA NOTURNA</span>
+              <button class="act-btn" onclick="togglePeso(this,'card4')">⚖️ Cru/Pronto</button>
+            </div>
+          </div>
+          <div id="card4">
+            <ul class="food-list">
+              <li class="food-item">
+                <div class="food-item-header">
+                  <div class="food-icon" style="background:var(--carb-high);">🥦</div>
+                  <div style="width:100%">
+                    <span class="base-label">CRUCÍFERO</span>
+                    <ul class="nested-options">
+                      <li><strong>Fixo Principal:</strong> PREFERENCIALMENTE BRÓCOLIS 200G à vontade</li>
+                      <li><strong>Alternativas:</strong> Ver Guia FODMAPs</li>
+                    </ul>
+                  </div>
+                </div>
+              </li>
+              <li class="food-item">
+                <div class="food-item-header">
+                  <div class="food-icon" style="background:#3498db;">🥩</div>
+                  <div style="width:100%">
+                    <span class="base-label">PROTEÍNA (Escolha 1)</span>
+                    <p style="font-size:0.85rem; color:var(--text-secondary); margin-top:0.5rem;">A quantidade de gordura varia conforme o corte da carne. Quanto mais gorda a proteína, menor a necessidade de gordura adicional.</p>
+                    <ul class="nested-options">
+                      <li><strong>Opção 1:</strong> <strong class="peso-cru">120g (CRU)</strong><strong class="peso-pronto">~85g (PRONTO)</strong> Carne Cozida (Músculo/Acém)</li>
+                      <li><strong>Opção 2:</strong> <strong class="peso-cru">120g (CRU)</strong><strong class="peso-pronto">~90g (PRONTO)</strong> Sobrecoxa de Frango (sem pele)</li>
+                      <li><strong>Opção 3:</strong> <strong class="peso-cru">130g (CRU)</strong><strong class="peso-pronto">~95g (PRONTO)</strong> Salmão ou Sardinha</li>
+                    </ul>
+                  </div>
+                </div>
+              </li>
+              <li class="food-item">
+                <div class="food-item-header">
+                  <div class="food-icon" style="background:var(--carb-low); color:#000;">🥑</div>
+                  <div style="width:100%">
+                    <span class="base-label">GORDURA (Escolha 1)</span>
+                    <ul class="nested-options">
+                      <li><strong>Opção 1:</strong> 45g Azeite Extra Virgem</li>
+                      <li><strong>Opção 2:</strong> 95g Pasta de Amendoim</li>
+                      <li><strong>Opção 3:</strong> 260g Abacate</li>
+                      <li><strong>Opção 4:</strong> 75g Castanha do Pará</li>
+                      <li><strong>Opção 5:</strong> 150g Coco seco</li>
+                    </ul>
+                    <p style="font-size:0.85rem; color:var(--text-secondary); margin-top:0.5rem;"><strong>Nota:</strong> Valores calculados para proteínas magras (Músculo/Acém). Se usar Salmão, reduza: Azeite 36g | Pasta amendoim 75g | Abacate 210g | Castanha 60g | Coco 120g — o objetivo é atingir ~53g de gordura total na refeição.</p>
+                  </div>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="meal-card" id="mealstrategy">
+        <div class="card">
+          <div class="meal-header">
+            <h3 class="meal-title">🔥 Diretrizes</h3>
+            <span class="meal-badge" style="background:var(--surface-hover); color:var(--text);">Gestão Semanal</span>
+          </div>
+          
+          <div class="options-grid" style="grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); margin-bottom:2rem;">
+            <div class="option-card" style="text-align:center; border-color:var(--carb-low);">
+              <h5 style="color:var(--carb-low);">Dia Baixo</h5>
+              <div style="font-size:2rem; font-weight:700; color:var(--carb-low);">1.785 <span style="font-size:1rem">kcal</span></div>
+            </div>
+            <div class="option-card" style="text-align:center; border-color:var(--primary); background:rgba(200,29,29,0.05);">
+              <h5 style="color:var(--primary);">Dia Base</h5>
+              <div style="font-size:2.2rem; font-weight:700; color:var(--primary);">2.100 <span style="font-size:1rem">kcal</span></div>
+            </div>
+            <div class="option-card" style="text-align:center; border-color:var(--carb-high);">
+              <h5 style="color:var(--carb-high);">Dia Alto</h5>
+              <div style="font-size:2rem; font-weight:700; color:var(--carb-high);">2.415 <span style="font-size:1rem">kcal</span></div>
+            </div>
+          </div>
+
+          <div class="subsection" contenteditable="true">
+            <h4>🔄 Protocolo de Execução</h4>
+            <ul style="padding-left:1.5rem; line-height:1.8; color:var(--text-secondary);">
+              <li><strong style="color:var(--primary);">Dias de Treino Padrão:</strong> Siga a Dieta Base rigorosamente. Sem cortes, sem bônus.</li>
+              <li><strong style="color:var(--carb-high);">Carbo Alto (Seg e Sex):</strong> Dias de treino de Glúteo e Braços/Ombros. Você demandará mais energia e recuperação tecidual. Este é o seu dia de Carbo Alto.</li>
+              <li><strong style="color:var(--carb-low);">Dias OFF / AEJ:</strong> Nestes dias sem musculação, entre em Carbo Baixo (-15%). Reduza os carbos nas R2 e R3 para forçar a oxidação de gordura.</li>
+              <li><strong>Refeição Livre:</strong> O direito ao "lixo" é conquistado após 14 dias de disciplina 100%. Substitua a primeira e a última refeição do dia por 1 (uma) refeição livre à sua escolha, sempre em um dia de Carbo Alto.</li>
+              <li><strong>Otimizações Constantes:</strong> Adoçantes (Stevia/Eritritol). Use Canela, Limão, Orégano e Vinagre de Maçã para controle glicêmico e digestão em todas as refeições possíveis.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div id="workoutModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>🏋️ Plano de Treino Biomecânico</h2>
+        <button class="close-btn" onclick="closeModal('workout')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="note-box" style="margin-top:0; margin-bottom:2rem; border-color:#e74c3c; background:rgba(231,76,60,0.1);">
+          <h4 style="margin-bottom:0.5rem; color:#e74c3c;">⚠️ Observação Ortopédica</h4>
+          <p>Presença de lesão ativa no ombro esquerdo, coxa esquerda e joelho direito. <strong>Evitar alta carga no Leg Press.</strong> Controle motor absoluto nas execuções de cadeia fechada.</p>
+        </div>
+        <div class="note-box" style="margin-bottom:2rem;">
+          <h4 style="margin-bottom:0.5rem;">Regra de Ouro da Hipertrofia</h4>
+          <p>Em cada treino, selecione <strong>apenas 1 exercício</strong> para levar à falha mecânica total ou aplicar técnica avançada. Nos demais, mantenha controle motor absoluto, foco na cadência e 1–2 repetições na reserva.</p>
+        </div>
+        <div class="subsection" style="cursor:pointer;" onclick="toggleWorkout('a')">
+          <h4 style="display:flex; justify-content:space-between; align-items:center;">
+            Treino A: Posterior, Glúteo e Abdômen (Segunda)
+            <span id="arrowa">▼</span>
+          </h4>
+          <div id="workouta" style="display:none; margin-top:1rem;">
+            <ol style="padding-left:1.5rem; color:var(--text-secondary); line-height:1.8;">
+              <li><strong style="color:var(--text)">Elevação Pélvica</strong> <em>(Principal — foco na contração de pico)</em></li>
+              <li><strong style="color:var(--text)">Stiff ou Terra Parcial</strong> <em>(Foco no alongamento)</em></li>
+              <li><strong style="color:var(--text)">Agachamento Sumô no Step</strong> <em>(Desça projetando o quadril. Suba sem travar o joelho)</em></li>
+              <li><strong style="color:var(--text)">Agachamento Búlgaro com Step</strong></li>
+              <li><strong style="color:var(--text)">Cadeira Flexora Sentada</strong> OU <strong style="color:var(--text)">Mesa Flexora</strong> <em>(Alterne na semana)</em></li>
+              <li><strong style="color:var(--text)">Cadeira Abdutora</strong> OU <strong style="color:var(--text)">Abdução no Cabo</strong></li>
+              <li><strong style="color:var(--text)">Abdominal Carrinho</strong></li>
+              <li><strong style="color:var(--text)">Abdominal na Prancha</strong></li>
+            </ol>
+          </div>
+        </div>
+        <div class="subsection" style="cursor:pointer;" onclick="toggleWorkout('b')">
+          <h4 style="display:flex; justify-content:space-between; align-items:center;">
+            Treino B: Peito e Costas (Terça)
+            <span id="arrowb">▼</span>
+          </h4>
+          <div id="workoutb" style="display:none; margin-top:1rem;">
+            <ol style="padding-left:1.5rem; color:var(--text-secondary); line-height:1.8;">
+              <li><strong style="color:var(--text)">Puxada Aberta</strong></li>
+              <li><strong style="color:var(--text)">Remada Fechada</strong> (Direção inferior do abdômen)</li>
+              <li><strong style="color:var(--text)">Pulldown ou Pullover</strong></li>
+              <li><strong style="color:var(--text)">Supino Reto Halter</strong></li>
+              <li><strong style="color:var(--text)">Voador / Máquina de Peito</strong> (Isolador)</li>
+            </ol>
+          </div>
+        </div>
+        <div class="subsection" style="cursor:pointer;" onclick="toggleWorkout('c')">
+          <h4 style="display:flex; justify-content:space-between; align-items:center;">
+            Treino C: Quadríceps e Panturrilha (Quinta)
+            <span id="arrowc">▼</span>
+          </h4>
+          <div id="workoutc" style="display:none; margin-top:1rem;">
+            <ol style="padding-left:1.5rem; color:var(--text-secondary); line-height:1.8;">
+              <li><strong style="color:var(--text)">Agachamento Livre / Hack / Smith</strong></li>
+              <li><strong style="color:var(--text)">Leg Press 45</strong> <em>(Cautela — evitar alta carga devido à lesão)</em></li>
+              <li><strong style="color:var(--text)">Passada / Sissy Squat</strong></li>
+              <li><strong style="color:var(--text)">Cadeira Extensora</strong></li>
+              <li><strong style="color:var(--text)">Panturrilha Sentada e Em Pé</strong></li>
+            </ol>
+          </div>
+        </div>
+        <div class="subsection" style="cursor:pointer;" onclick="toggleWorkout('d')">
+          <h4 style="display:flex; justify-content:space-between; align-items:center;">
+            Treino D: Ombros e Braços (Sexta)
+            <span id="arrowd">▼</span>
+          </h4>
+          <div id="workoutd" style="display:none; margin-top:1rem;">
+            <ol style="padding-left:1.5rem; color:var(--text-secondary); line-height:1.8;">
+              <li><strong style="color:var(--text)">Crucifixo Inverso</strong> (Deltóide Posterior)</li>
+              <li><strong style="color:var(--text)">Elevação Lateral</strong> (Halter/Cabo)</li>
+              <li><strong style="color:var(--text)">Desenvolvimento Halter ou Barra</strong></li>
+              <li><strong style="color:var(--text)">Encolhimento</strong> (Trapézio)</li>
+              <li><strong style="color:var(--text)">Rosca Scott Máquina</strong> (Estabilização do úmero)</li>
+              <li><strong style="color:var(--text)">Rosca Martelo Sentado</strong> (Evita roubo com lombar)</li>
+              <li><strong style="color:var(--text)">Tríceps Testa / Francês</strong> (Livre)</li>
+              <li><strong style="color:var(--text)">Tríceps Pulley</strong> <em>(Varie semanalmente entre Corda, Barra V e Barra W)</em></li>
+            </ol>
+          </div>
+        </div>
+        <div style="margin-top:3rem; padding-top:2rem; border-top:2px solid var(--border);">
+          <h3 style="margin-bottom:1.5rem; color:var(--primary); font-size:1.5rem;">📋 Periodização do Mês</h3>
+          <div class="options-grid">
+            <div class="option-card">
+              <h5 style="margin-bottom:0.5rem;">Semana 1: Carga Máxima</h5>
+              <ul style="padding-left:1.2rem; color:var(--text-secondary); font-size:0.9rem;">
+                <li>Sets: <strong>4 a 5</strong> | Reps: <strong>5 a 8</strong></li>
+                <li>Descanso: <strong>2 min</strong></li>
+                <li>Cadência: 1s (Con) / 2s (Exc)</li>
+              </ul>
+            </div>
+            <div class="option-card">
+              <h5 style="margin-bottom:0.5rem;">Semana 2 e 3: Qualidade N-M</h5>
+              <ul style="padding-left:1.2rem; color:var(--text-secondary); font-size:0.9rem;">
+                <li>Sets: <strong>3 a 4</strong> | Reps: <strong>10 a 12</strong></li>
+                <li>Descanso: <strong>1 a 1,5 min</strong></li>
+                <li>Cadência: 1s (Con) / 1-2s (Exc)</li>
+              </ul>
+            </div>
+            <div class="option-card">
+              <h5 style="margin-bottom:0.5rem;">Semana 4: Estresse Metabólico</h5>
+              <ul style="padding-left:1.2rem; color:var(--text-secondary); font-size:0.9rem;">
+                <li>Sets: <strong>2 a 4</strong> | Reps: <strong>15 a 20</strong></li>
+                <li>Descanso: <strong>30 a 45s</strong></li>
+                <li>Cadência: 1s (Con) / 1s (Exc)</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="suplementosModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>💊 Suplementação & Ergogênicos</h2>
+        <button class="close-btn" onclick="closeModal('suplementos')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="subsection" style="border-left-color:var(--primary); background:rgba(200,29,29,0.05);" contenteditable="true">
+          <h4 style="color:var(--primary); margin-bottom:1rem;">💉 SUPORTE HORMONAL</h4>
+          <ul style="list-style:none; padding-left:0; line-height:1.8; color:var(--text);">
+            <li style="margin-bottom:0.8rem; border-bottom:1px solid var(--border); padding-bottom:0.8rem;">
+              <strong>Deca Durabolin:</strong> 0,25ml DSDN (Dia Sim, Dia Não)<br>
+              <span style="font-size:0.85rem; color:var(--text-secondary); font-style:italic;">Preferencialmente no mesmo horário.</span>
+            </li>
+          </ul>
+        </div>
+        <div class="subsection" style="border-left-color:#3498db;" contenteditable="true">
+          <h4 style="color:#3498db; margin-bottom:1rem;">☀️ MANHÃ (Após R1)</h4>
+          <ul style="list-style:none; padding-left:0; line-height:1.8; color:var(--text);">
+            <li style="margin-bottom:0.8rem; border-bottom:1px solid var(--border); padding-bottom:0.8rem;">
+              <strong>Vitamina D3 9000UI + Vitamina K2MK7 + Metilcobalamina</strong><br>
+              <span style="font-size:0.85rem; color:var(--text-secondary); font-style:italic;">Tomar 1 dose.</span>
+            </li>
+            <li style="margin-bottom:0.8rem; border-bottom:1px solid var(--border); padding-bottom:0.8rem;">
+              <strong>Ômega 3 1g</strong><br>
+              <span style="font-size:0.85rem; color:var(--text-secondary); font-style:italic;">Tomar 2 cápsulas.</span>
+            </li>
+            <li style="margin-bottom:0.8rem; padding-bottom:0.8rem;">
+              <strong>Creatina Monohidratada</strong><br>
+              <span style="font-size:0.85rem; color:var(--text-secondary); font-style:italic;">5g todos os dias.</span>
+            </li>
+          </ul>
+          <h4 style="color:#3498db; margin-top:2rem; margin-bottom:1rem; border-top:2px solid var(--border); padding-top:1.5rem;">🌙 NOITE (30 Minutos Antes de Dormir)</h4>
+          <ul style="list-style:none; padding-left:0; line-height:1.8; color:var(--text);">
+            <li style="margin-bottom:0.8rem; border-bottom:1px solid var(--border); padding-bottom:0.8rem;">
+              <strong>Magnésio 500mg (mix de bisglicinato 300mg c/ treonato 200mg) + Zinco 30mg + Vitamina C 700 mg</strong><br>
+              <span style="font-size:0.85rem; color:var(--text-secondary); font-style:italic;">Tomar 1 dose.</span>
+            </li>
+            <li style="margin-bottom:0.8rem;">
+              <strong>Melatonina SL 1mg</strong><br>
+              <span style="font-size:0.85rem; color:var(--text-secondary); font-style:italic;">Tomar 1 dose sublingual.</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="proteinasModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>🥩 Dicas: Proteína</h2>
+        <button class="close-btn" onclick="closeModal('proteinas')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="subsection" style="border-left-color:#2ecc71;">
+          <h4 style="color:#2ecc71;">✅ Proteínas Magras — Refeições 2 e 3</h4>
+          <p style="margin-bottom:1rem; font-size:0.9rem; color:var(--text-secondary);">Objetivo: alto aporte proteico com baixo impacto calórico de gordura durante o dia.</p>
+          <ul style="list-style:none; line-height:1.8;">
+            <li><strong>🐔 Aves:</strong> Peito de Frango (32g prot / 100g cru), Sassami, Coxa/Sobrecoxa SEM pele</li>
+            <li><strong>🥩 Bovinos Magros:</strong> Patinho (36g prot / 100g cru), Coxão Mole, Lagarto, Mignon extra limpo</li>
+            <li><strong>🐟 Peixes Magros:</strong> Tilápia (26g prot / 100g cru), Merluza, Atum em água (escorrido)</li>
+          </ul>
+          <p style="margin-top:1rem; font-size:0.85rem; color:var(--carb-high);">💡 Carne cozida como preferência da aluna — manter. Usar caldo do cozimento para umidade.</p>
+        </div>
+        <div class="subsection" style="border-left-color:var(--carb-low); margin-top:1.5rem;">
+          <h4 style="color:var(--carb-low);">🔶 Proteínas Gordas — Refeição 4 (Zero Carbo)</h4>
+          <p style="margin-bottom:1rem; font-size:0.9rem; color:var(--text-secondary);">Cortes ricos em colágeno, gorduras estruturais e ômega-3 para suporte hormonal noturno.</p>
+          <ul style="list-style:none; line-height:1.8;">
+            <li><strong>🥩 Bovinos com Colágeno:</strong> Músculo (ótimo c/ brócolis cozido), Acém, Maminha</li>
+            <li><strong>🐷 Suíno:</strong> Lombo com capa de gordura, Bisteca</li>
+            <li><strong>🐟 Peixes Gordos:</strong> Salmão (ômega-3), Sardinha</li>
+          </ul>
+          <p style="margin-top:1rem; font-size:0.85rem; color:var(--primary);">⚠️ Salmão e Porco: preparar em fogo baixo/médio — não refogar em alta temperatura.</p>
+        </div>
+        <h4 style="margin-top: 2rem; color: var(--primary);">📊 Referência Rápida TACO (por 100g cru)</h4>
+        <table class="taco-table" style="width: 100%; border-collapse: collapse; margin-top: 1rem; font-size: 0.85rem; color: var(--text);">
+          <tr><th style="border: 1px solid var(--border); padding: 8px; background: var(--bg); color: var(--primary);">Alimento</th><th style="border: 1px solid var(--border); padding: 8px; background: var(--bg); color: var(--primary);">Kcal</th><th style="border: 1px solid var(--border); padding: 8px; background: var(--bg); color: var(--primary);">Prot</th><th style="border: 1px solid var(--border); padding: 8px; background: var(--bg); color: var(--primary);">Lip</th></tr>
+          <tr><td style="border: 1px solid var(--border); padding: 8px;">Peito de Frango</td><td style="border: 1px solid var(--border); padding: 8px;">163</td><td style="border: 1px solid var(--border); padding: 8px;">32g</td><td style="border: 1px solid var(--border); padding: 8px;">2,5g</td></tr>
+          <tr><td style="border: 1px solid var(--border); padding: 8px;">Patinho</td><td style="border: 1px solid var(--border); padding: 8px;">195</td><td style="border: 1px solid var(--border); padding: 8px;">36g</td><td style="border: 1px solid var(--border); padding: 8px;">4,5g</td></tr>
+          <tr><td style="border: 1px solid var(--border); padding: 8px;">Tilápia</td><td style="border: 1px solid var(--border); padding: 8px;">128</td><td style="border: 1px solid var(--border); padding: 8px;">26g</td><td style="border: 1px solid var(--border); padding: 8px;">2g</td></tr>
+          <tr><td style="border: 1px solid var(--border); padding: 8px;">Músculo Bovino</td><td style="border: 1px solid var(--border); padding: 8px;">140</td><td style="border: 1px solid var(--border); padding: 8px;">21g</td><td style="border: 1px solid var(--border); padding: 8px;">6g</td></tr>
+          <tr><td style="border: 1px solid var(--border); padding: 8px;">Acém</td><td style="border: 1px solid var(--border); padding: 8px;">195</td><td style="border: 1px solid var(--border); padding: 8px;">20g</td><td style="border: 1px solid var(--border); padding: 8px;">11g</td></tr>
+          <tr><td style="border: 1px solid var(--border); padding: 8px;">Salmão</td><td style="border: 1px solid var(--border); padding: 8px;">208</td><td style="border: 1px solid var(--border); padding: 8px;">20g</td><td style="border: 1px solid var(--border); padding: 8px;">13g</td></tr>
+          <tr><td style="border: 1px solid var(--border); padding: 8px;">Lombo Suíno c/ capa</td><td style="border: 1px solid var(--border); padding: 8px;">240</td><td style="border: 1px solid var(--border); padding: 8px;">19g</td><td style="border: 1px solid var(--border); padding: 8px;">18g</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div id="fodmapModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>🥬 Guia FODMAPs</h2>
+        <button class="close-btn" onclick="closeModal('fodmap')">✕</button>
+      </div>
+      <div class="modal-body">
+        <p style="color:var(--text-secondary); margin-bottom:1.5rem;">Modulação intestinal é essencial. Intestino inflamado reduz absorção e prejudica resposta hormonal. Vilma relatou gases com feijão — usar com cautela.</p>
+        <div class="options-grid">
+          <div class="option-card" style="border-color:#2ecc71;">
+            <h5 style="color:#2ecc71;">✅ Seguros — Use à Vontade na R4</h5>
+            <ul style="padding-left:1.2rem; font-size:0.9rem; line-height:1.8;">
+              <li><strong>Brócolis</strong> — padrão principal da R4</li>
+              <li>Abobrinha (zucchini)</li>
+              <li>Pepino (sem casca)</li>
+              <li>Espinafre</li>
+              <li>Vagem</li>
+              <li>Alface, Rúcula, Agrião</li>
+              <li>Cenoura</li>
+              <li>Chuchu</li>
+            </ul>
+          </div>
+          <div class="option-card" style="border-color:var(--carb-low);">
+            <h5 style="color:var(--carb-low);">⚠️ Moderar (com cautela)</h5>
+            <ul style="padding-left:1.2rem; font-size:0.9rem; line-height:1.8;">
+              <li>Tomate (pequenas qtd)</li>
+              <li>Alho cru em excesso</li>
+              <li>Couve-flor (pode fermentar)</li>
+              <li>Beterraba</li>
+            </ul>
+          </div>
+          <div class="option-card" style="border-color:var(--primary);">
+            <h5 style="color:var(--primary);">❌ Restringir — Fermentadores</h5>
+            <ul style="padding-left:1.2rem; font-size:0.9rem; line-height:1.8;">
+              <li><strong>Feijão em grande volume</strong> (aluna relata gases)</li>
+              <li>Laticínios com lactose</li>
+              <li>Glúten em excesso</li>
+              <li>Cebola crua em grande qtd</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="calcModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>🧮 Calculadora TACO+</h2>
+        <button class="close-btn" onclick="closeModal('calc')">✕</button>
+      </div>
+      <div class="modal-body">
+        <p style="color:var(--text-secondary); margin-bottom:1.5rem;">Descubra equivalências exatas de macronutrientes cruzando o peso do alimento cru vs cozido.</p>
+        <div class="form-group" style="background:rgba(255,255,255,0.05); padding:1rem; border-radius:12px; border:1px solid var(--border);">
+          <label style="color:var(--text);">Modo de Cálculo:</label>
+          <select id="calcMode" style="background:var(--surface); color:var(--primary); font-weight:bold; border-color:var(--border);">
+            <option value="kcal" selected>Equivalência por Calorias (Kcal) — PADRÃO</option>
+            <option value="prot">Equivalência por Proteína (g)</option>
+            <option value="carb">Equivalência por Carboidrato (g)</option>
+            <option value="lip">Equivalência por Gordura (g)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>De (Alimento de Origem):</label>
+          <input type="text" id="fromName" placeholder="Ex: Arroz Parboilizado Cru..." oninput="showSuggestions('from')" autocomplete="off">
+          <div id="fromSuggestions" class="suggestions"></div>
+        </div>
+        <div class="form-group">
+          <label>Quantidade (em gramas):</label>
+          <input type="number" id="fromGrams" value="100">
+        </div>
+        <div class="form-group">
+          <label>Para (Alimento Substituto):</label>
+          <input type="text" id="toName" placeholder="Ex: Batata Doce Cozida..." oninput="showSuggestions('to')" autocomplete="off">
+          <div id="toSuggestions" class="suggestions"></div>
+        </div>
+        <button class="btn" onclick="calculate()">Calcular Substituição</button>
+        <div id="calcResult"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="calendarModal" class="modal">
+    <div class="modal-content" style="max-width:1200px;">
+      <div class="modal-header">
+        <h2>📅 Calendário de Ciclagem (Semana Padrão)</h2>
+        <button class="close-btn" onclick="closeModal('calendar')">✕</button>
+      </div>
+      <div class="modal-body">
+        <p style="color:var(--text-secondary); margin-bottom:2rem;">Visão panorâmica da modulação de carboidratos em relação aos treinos hipertróficos.</p>
+        <div class="calendar-container">
+          <div class="calendar-day" style="border-color:var(--carb-high); background:rgba(46,204,113,0.05);">
+            <div class="day-header">Segunda</div>
+            <div class="day-number" style="color:var(--carb-high);">ALTO</div>
+            <div class="meal-preview"><strong>Treino A:</strong><br>Glúteo/Posterior</div>
+            <div class="meal-preview"><strong>Kcal:</strong> 2.415</div>
+          </div>
+          <div class="calendar-day" style="border-color:var(--primary); background:rgba(200,29,29,0.02);">
+            <div class="day-header">Terça</div>
+            <div class="day-number" style="color:var(--primary);">BASE</div>
+            <div class="meal-preview"><strong>Treino B:</strong><br>Peito/Costas</div>
+            <div class="meal-preview"><strong>Kcal:</strong> 2.100</div>
+          </div>
+          <div class="calendar-day" style="border-color:var(--carb-low); background:rgba(241,196,15,0.05);">
+            <div class="day-header">Quarta</div>
+            <div class="day-number" style="color:var(--carb-low);">BAIXO</div>
+            <div class="meal-preview"><strong>Treino:</strong><br>OFF</div>
+            <div class="meal-preview"><strong>Kcal:</strong> 1.785</div>
+          </div>
+          <div class="calendar-day" style="border-color:var(--carb-high); background:rgba(46,204,113,0.05);">
+            <div class="day-header">Quinta</div>
+            <div class="day-number" style="color:var(--carb-high);">ALTO</div>
+            <div class="meal-preview"><strong>Treino C:</strong><br>Quadríceps</div>
+            <div class="meal-preview"><strong>Kcal:</strong> 2.415</div>
+          </div>
+          <div class="calendar-day" style="border-color:var(--primary); background:rgba(200,29,29,0.02);">
+            <div class="day-header">Sexta</div>
+            <div class="day-number" style="color:var(--primary);">BASE</div>
+            <div class="meal-preview"><strong>Treino D:</strong><br>Ombros/Braços</div>
+            <div class="meal-preview"><strong>Kcal:</strong> 2.100</div>
+          </div>
+          <div class="calendar-day" style="border-color:var(--carb-low); background:rgba(241,196,15,0.05);">
+            <div class="day-header">Sábado</div>
+            <div class="day-number" style="color:var(--carb-low);">BAIXO</div>
+            <div class="meal-preview"><strong>Treino:</strong><br>OFF</div>
+            <div class="meal-preview"><strong>Kcal:</strong> 1.785</div>
+          </div>
+          <div class="calendar-day" style="border-color:var(--carb-low); background:rgba(241,196,15,0.05);">
+            <div class="day-header">Domingo</div>
+            <div class="day-number" style="color:var(--carb-low);">BAIXO</div>
+            <div class="meal-preview"><strong>Treino:</strong><br>OFF</div>
+            <div class="meal-preview"><strong>Kcal:</strong> 1.785</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="shoppingModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>🛒 Gerador de Compras (14 dias)</h2>
+        <button class="close-btn" onclick="closeModal('shopping')">✕</button>
+      </div>
+      <div class="modal-body">
+        <p style="color:var(--text-secondary); margin-bottom:1.5rem;">Selecione os alimentos escolhidos e a frequência de uso. O sistema exportará um arquivo limpo (.txt) para facilitar sua ida ao mercado.</p>
+
+        <div class="subsection">
+          <h4>Refeição 1 (Manhã)</h4>
+          <div class="shopping-item">
+            <div class="shop-item-left"><input type="checkbox" class="shop-item-check" data-item="Ovos (Inteiros e Claras)" data-daily="4" data-unit="unidades" data-section="Proteínas" onchange="toggleFreq(this)"><label>Ovos (Inteiros e Claras)</label></div>
+            <select class="freq-select" style="display:none;"><option value="1">1 dia/sem</option><option value="2">2 dias/sem</option><option value="3">3 dias/sem</option><option value="4">4 dias/sem</option><option value="5">5 dias/sem</option><option value="6">6 dias/sem</option><option value="7" selected>7 dias/sem</option></select>
+          </div>
+          <div class="shopping-item">
+            <div class="shop-item-left"><input type="checkbox" class="shop-item-check" data-item="Pão Integral/Milho" data-daily="2" data-unit="fatias" data-section="Carboidratos" onchange="toggleFreq(this)"><label>Pão Integral/Milho</label></div>
+            <select class="freq-select" style="display:none;"><option value="1">1 dia/sem</option><option value="2">2 dias/sem</option><option value="3">3 dias/sem</option><option value="4">4 dias/sem</option><option value="5">5 dias/sem</option><option value="6">6 dias/sem</option><option value="7" selected>7 dias/sem</option></select>
+          </div>
+          <div class="shopping-item">
+            <div class="shop-item-left"><input type="checkbox" class="shop-item-check" data-item="Goma de Tapioca" data-daily="60" data-unit="g" data-section="Carboidratos" onchange="toggleFreq(this)"><label>Goma de Tapioca</label></div>
+            <select class="freq-select" style="display:none;"><option value="1">1 dia/sem</option><option value="2">2 dias/sem</option><option value="3">3 dias/sem</option><option value="4">4 dias/sem</option><option value="5">5 dias/sem</option><option value="6">6 dias/sem</option><option value="7" selected>7 dias/sem</option></select>
+          </div>
+          <div class="shopping-item">
+            <div class="shop-item-left"><input type="checkbox" class="shop-item-check" data-item="Aveia em Flocos" data-daily="40" data-unit="g" data-section="Carboidratos" onchange="toggleFreq(this)"><label>Aveia em Flocos</label></div>
+            <select class="freq-select" style="display:none;"><option value="1">1 dia/sem</option><option value="2">2 dias/sem</option><option value="3">3 dias/sem</option><option value="4">4 dias/sem</option><option value="5">5 dias/sem</option><option value="6">6 dias/sem</option><option value="7" selected>7 dias/sem</option></select>
+          </div>
+          <div class="shopping-item">
+            <div class="shop-item-left"><input type="checkbox" class="shop-item-check" data-item="Banana/Maçã/Mamão" data-daily="100" data-unit="g" data-section="Hortifruti" onchange="toggleFreq(this)"><label>Frutas (Banana/Maçã/Mamão)</label></div>
+            <select class="freq-select" style="display:none;"><option value="1">1 dia/sem</option><option value="2">2 dias/sem</option><option value="3">3 dias/sem</option><option value="4">4 dias/sem</option><option value="5">5 dias/sem</option><option value="6">6 dias/sem</option><option value="7" selected>7 dias/sem</option></select>
+          </div>
+        </div>
+
+        <div class="subsection">
+          <h4>Refeições 2 e 3 (Diurnas)</h4>
+          <h5 style="color:var(--primary); margin-top:1rem; margin-bottom:0.5rem;">Carboidratos:</h5>
+          <div class="shopping-item">
+            <div class="shop-item-left"><input type="checkbox" class="shop-item-check" data-item="Arroz Parboilizado" data-daily="180" data-unit="g" data-section="Carboidratos" onchange="toggleFreq(this)"><label>Arroz Parboilizado</label></div>
+            <select class="freq-select" style="display:none;"><option value="1">1 dia/sem</option><option value="2">2 dias/sem</option><option value="3">3 dias/sem</option><option value="4">4 dias/sem</option><option value="5">5 dias/sem</option><option value="6">6 dias/sem</option><option value="7" selected>7 dias/sem</option></select>
+          </div>
+          <div class="shopping-item">
+            <div class="shop-item-left"><input type="checkbox" class="shop-item-check" data-item="Feijão" data-daily="60" data-unit="g" data-section="Carboidratos" onchange="toggleFreq(this)"><label>Feijão</label></div>
+            <select class="freq-select" style="display:none;"><option value="1">1 dia/sem</option><option value="2">2 dias/sem</option><option value="3">3 dias/sem</option><option value="4">4 dias/sem</option><option value="5">5 dias/sem</option><option value="6">6 dias/sem</option><option value="7" selected>7 dias/sem</option></select>
+          </div>
+          <div class="shopping-item">
+            <div class="shop-item-left"><input type="checkbox" class="shop-item-check" data-item="Batata Inglesa" data-daily="100" data-unit="g" data-section="Hortifruti" onchange="toggleFreq(this)"><label>Batata Inglesa</label></div>
+            <select class="freq-select" style="display:none;"><option value="1">1 dia/sem</option><option value="2">2 dias/sem</option><option value="3">3 dias/sem</option><option value="4">4 dias/sem</option><option value="5">5 dias/sem</option><option value="6">6 dias/sem</option><option value="7" selected>7 dias/sem</option></select>
+          </div>
+          <div class="shopping-item">
+            <div class="shop-item-left"><input type="checkbox" class="shop-item-check" data-item="Mandioca" data-daily="150" data-unit="g" data-section="Hortifruti" onchange="toggleFreq(this)"><label>Mandioca</label></div>
+            <select class="freq-select" style="display:none;"><option value="1">1 dia/sem</option><option value="2">2 dias/sem</option><option value="3">3 dias/sem</option><option value="4">4 dias/sem</option><option value="5">5 dias/sem</option><option value="6">6 dias/sem</option><option value="7" selected>7 dias/sem</option></select>
+          </div>
+          <div class="shopping-item">
+            <div class="shop-item-left"><input type="checkbox" class="shop-item-check" data-item="Batata Doce" data-daily="200" data-unit="g" data-section="Hortifruti" onchange="toggleFreq(this)"><label>Batata Doce</label></div>
+            <select class="freq-select" style="display:none;"><option value="1">1 dia/sem</option><option value="2">2 dias/sem</option><option value="3">3 dias/sem</option><option value="4">4 dias/sem</option><option value="5">5 dias/sem</option><option value="6">6 dias/sem</option><option value="7" selected>7 dias/sem</option></select>
+          </div>
+          <div class="shopping-item">
+            <div class="shop-item-left"><input type="checkbox" class="shop-item-check" data-item="Macarrão de Arroz" data-daily="100" data-unit="g" data-section="Carboidratos" onchange="toggleFreq(this)"><label>Macarrão de Arroz</label></div>
+            <select class="freq-select" style="display:none;"><option value="1">1 dia/sem</option><option value="2">2 dias/sem</option><option value="3">3 dias/sem</option><option value="4">4 dias/sem</option><option value="5">5 dias/sem</option><option value="6">6 dias/sem</option><option value="7" selected>7 dias/sem</option></select>
+          </div>
+          <h5 style="color:var(--primary); margin-top:1.5rem; margin-bottom:0.5rem;">Proteínas Magras (R2/R3):</h5>
+          <div class="shopping-item">
+            <div class="shop-item-left"><input type="checkbox" class="shop-item-check" data-item="Peito de Frango" data-daily="200" data-unit="g" data-section="Proteínas" onchange="toggleFreq(this)"><label>Peito de Frango</label></div>
+            <select class="freq-select" style="display:none;"><option value="1">1 dia/sem</option><option value="2">2 dias/sem</option><option value="3">3 dias/sem</option><option value="4">4 dias/sem</option><option value="5">5 dias/sem</option><option value="6">6 dias/sem</option><option value="7" selected>7 dias/sem</option></select>
+          </div>
+          <div class="shopping-item">
+            <div class="shop-item-left"><input type="checkbox" class="shop-item-check" data-item="Patinho Bovino" data-daily="120" data-unit="g" data-section="Proteínas" onchange="toggleFreq(this)"><label>Patinho Bovino</label></div>
+            <select class="freq-select" style="display:none;"><option value="1">1 dia/sem</option><option value="2">2 dias/sem</option><option value="3">3 dias/sem</option><option value="4">4 dias/sem</option><option value="5">5 dias/sem</option><option value="6">6 dias/sem</option><option value="7" selected>7 dias/sem</option></select>
+          </div>
+          <div class="shopping-item">
+            <div class="shop-item-left"><input type="checkbox" class="shop-item-check" data-item="Tilápia / Merluza" data-daily="120" data-unit="g" data-section="Proteínas" onchange="toggleFreq(this)"><label>Tilápia / Merluza</label></div>
+            <select class="freq-select" style="display:none;"><option value="1">1 dia/sem</option><option value="2">2 dias/sem</option><option value="3">3 dias/sem</option><option value="4">4 dias/sem</option><option value="5">5 dias/sem</option><option value="6">6 dias/sem</option><option value="7" selected>7 dias/sem</option></select>
+          </div>
+          <div class="shopping-item">
+            <div class="shop-item-left"><input type="checkbox" class="shop-item-check" data-item="Atum em Água" data-daily="100" data-unit="g" data-section="Proteínas" onchange="toggleFreq(this)"><label>Atum em Água</label></div>
+            <select class="freq-select" style="display:none;"><option value="1">1 dia/sem</option><option value="2">2 dias/sem</option><option value="3">3 dias/sem</option><option value="4">4 dias/sem</option><option value="5">5 dias/sem</option><option value="6">6 dias/sem</option><option value="7" selected>7 dias/sem</option></select>
+          </div>
+          <div class="shopping-item">
+            <div class="shop-item-left"><input type="checkbox" class="shop-item-check" data-item="Sobrecoxa de Frango (sem pele)" data-daily="120" data-unit="g" data-section="Proteínas" onchange="toggleFreq(this)"><label>Sobrecoxa de Frango</label></div>
+            <select class="freq-select" style="display:none;"><option value="1">1 dia/sem</option><option value="2">2 dias/sem</option><option value="3">3 dias/sem</option><option value="4">4 dias/sem</option><option value="5">5 dias/sem</option><option value="6">6 dias/sem</option><option value="7" selected>7 dias/sem</option></select>
+          </div>
+        </div>
+
+        <div class="subsection">
+          <h4>Refeição 4 (Zero Carbo)</h4>
+          <h5 style="color:var(--primary); margin-top:1rem; margin-bottom:0.5rem;">Proteínas Gordas (R4):</h5>
+          <div class="shopping-item">
+            <div class="shop-item-left"><input type="checkbox" class="shop-item-check" data-item="Acém / Músculo / Bovino Gordo" data-daily="120" data-unit="g" data-section="Proteínas" onchange="toggleFreq(this)"><label>Acém / Músculo Bovino</label></div>
+            <select class="freq-select" style="display:none;"><option value="1">1 dia/sem</option><option value="2">2 dias/sem</option><option value="3">3 dias/sem</option><option value="4">4 dias/sem</option><option value="5">5 dias/sem</option><option value="6">6 dias/sem</option><option value="7" selected>7 dias/sem</option></select>
+          </div>
+          <div class="shopping-item">
+            <div class="shop-item-left"><input type="checkbox" class="shop-item-check" data-item="Salmão / Sardinha" data-daily="120" data-unit="g" data-section="Proteínas" onchange="toggleFreq(this)"><label>Salmão / Sardinha</label></div>
+            <select class="freq-select" style="display:none;"><option value="1">1 dia/sem</option><option value="2">2 dias/sem</option><option value="3">3 dias/sem</option><option value="4">4 dias/sem</option><option value="5">5 dias/sem</option><option value="6">6 dias/sem</option><option value="7" selected>7 dias/sem</option></select>
+          </div>
+          <h5 style="color:var(--primary); margin-top:1.5rem; margin-bottom:0.5rem;">Gorduras:</h5>
+          <div class="shopping-item">
+            <div class="shop-item-left"><input type="checkbox" class="shop-item-check" data-item="Azeite Extra Virgem" data-daily="25" data-unit="ml" data-section="Mercearia" onchange="toggleFreq(this)"><label>Azeite Extra Virgem</label></div>
+            <select class="freq-select" style="display:none;"><option value="1">1 dia/sem</option><option value="2">2 dias/sem</option><option value="3">3 dias/sem</option><option value="4">4 dias/sem</option><option value="5">5 dias/sem</option><option value="6">6 dias/sem</option><option value="7" selected>7 dias/sem</option></select>
+          </div>
+          <div class="shopping-item">
+            <div class="shop-item-left"><input type="checkbox" class="shop-item-check" data-item="Nozes / Macadâmia / Castanhas" data-daily="20" data-unit="g" data-section="Mercearia" onchange="toggleFreq(this)"><label>Nozes / Macadâmia / Castanhas</label></div>
+            <select class="freq-select" style="display:none;"><option value="1">1 dia/sem</option><option value="2">2 dias/sem</option><option value="3">3 dias/sem</option><option value="4">4 dias/sem</option><option value="5">5 dias/sem</option><option value="6">6 dias/sem</option><option value="7" selected>7 dias/sem</option></select>
+          </div>
+          <div class="shopping-item">
+            <div class="shop-item-left"><input type="checkbox" class="shop-item-check" data-item="Mussarela de Búfala" data-daily="30" data-unit="g" data-section="Frios/Laticínios" onchange="toggleFreq(this)"><label>Mussarela de Búfala</label></div>
+            <select class="freq-select" style="display:none;"><option value="1">1 dia/sem</option><option value="2">2 dias/sem</option><option value="3">3 dias/sem</option><option value="4">4 dias/sem</option><option value="5">5 dias/sem</option><option value="6">6 dias/sem</option><option value="7" selected>7 dias/sem</option></select>
+          </div>
+          <div class="shopping-item">
+            <div class="shop-item-left"><input type="checkbox" class="shop-item-check" data-item="Coco Fresco / Abacate" data-daily="50" data-unit="g" data-section="Hortifruti" onchange="toggleFreq(this)"><label>Coco Fresco / Abacate</label></div>
+            <select class="freq-select" style="display:none;"><option value="1">1 dia/sem</option><option value="2">2 dias/sem</option><option value="3">3 dias/sem</option><option value="4">4 dias/sem</option><option value="5">5 dias/sem</option><option value="6">6 dias/sem</option><option value="7" selected>7 dias/sem</option></select>
+          </div>
+          <div class="shopping-item">
+            <div class="shop-item-left"><input type="checkbox" class="shop-item-check" data-item="Pasta de Amendoim" data-daily="15" data-unit="g" data-section="Mercearia" onchange="toggleFreq(this)"><label>Pasta de Amendoim</label></div>
+            <select class="freq-select" style="display:none;"><option value="1">1 dia/sem</option><option value="2">2 dias/sem</option><option value="3">3 dias/sem</option><option value="4">4 dias/sem</option><option value="5">5 dias/sem</option><option value="6">6 dias/sem</option><option value="7" selected>7 dias/sem</option></select>
+          </div>
+        </div>
+
+        <div class="subsection">
+          <h4>Vegetais, Condimentos e Misc.</h4>
+          <div class="shopping-item">
+            <div class="shop-item-left"><input type="checkbox" class="shop-item-check" data-item="Brócolis (Vegetais Zero Carbo)" data-daily="200" data-unit="g" data-section="Hortifruti" onchange="toggleFreq(this)" checked><label>Brócolis (base R4)</label></div>
+            <select class="freq-select"><option value="1">1 dia/sem</option><option value="2">2 dias/sem</option><option value="3">3 dias/sem</option><option value="4">4 dias/sem</option><option value="5">5 dias/sem</option><option value="6">6 dias/sem</option><option value="7" selected>7 dias/sem</option></select>
+          </div>
+          <div class="shopping-item">
+            <div class="shop-item-left"><input type="checkbox" class="shop-item-check" data-item="Abobrinha / Pepino / Espinafre / Vagem" data-daily="150" data-unit="g" data-section="Hortifruti" onchange="toggleFreq(this)" checked><label>Vegetais FODMAP (R4 alternativo)</label></div>
+            <select class="freq-select"><option value="1">1 dia/sem</option><option value="2">2 dias/sem</option><option value="3">3 dias/sem</option><option value="4">4 dias/sem</option><option value="5">5 dias/sem</option><option value="6">6 dias/sem</option><option value="7" selected>7 dias/sem</option></select>
+          </div>
+          <div class="shopping-item">
+            <div class="shop-item-left"><input type="checkbox" class="shop-item-check" data-item="Salada Verde Livre (R2/R3)" data-daily="200" data-unit="g" data-section="Hortifruti" onchange="toggleFreq(this)" checked><label>Salada Verde (R2/R3)</label></div>
+            <select class="freq-select"><option value="1">1 dia/sem</option><option value="2">2 dias/sem</option><option value="3">3 dias/sem</option><option value="4">4 dias/sem</option><option value="5">5 dias/sem</option><option value="6">6 dias/sem</option><option value="7" selected>7 dias/sem</option></select>
+          </div>
+          <div class="shopping-item">
+            <div class="shop-item-left"><input type="checkbox" class="shop-item-check" data-item="Kit: Vinagre de Maçã, Limão, Stevia, Canela, Temperos" data-daily="1" data-unit="kit" data-section="Mercearia" onchange="toggleFreq(this)" checked><label>Temperos / Moduladores</label></div>
+            <select class="freq-select"><option value="1" selected>Apenas 1x</option></select>
+          </div>
+          <div class="shopping-item">
+            <div class="shop-item-left"><input type="checkbox" class="shop-item-check" data-item="Óleo de Coco / Manteiga (preparo)" data-daily="5" data-unit="ml" data-section="Mercearia" onchange="toggleFreq(this)"><label>Óleo de Coco / Manteiga (preparo)</label></div>
+            <select class="freq-select" style="display:none;"><option value="1">1 dia/sem</option><option value="2">2 dias/sem</option><option value="3">3 dias/sem</option><option value="4">4 dias/sem</option><option value="5">5 dias/sem</option><option value="6">6 dias/sem</option><option value="7" selected>7 dias/sem</option></select>
+          </div>
+        </div>
+
+        <button class="btn" onclick="generateShoppingList()">Gerar Lista (TXT)</button>
+        <button class="btn btn-secondary" onclick="clearSelections()">Limpar Seleções</button>
+        <div id="shoppingResult"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const tacoDB = {
+      "peito de frango cru": { nome:"Peito de Frango (Cru)", prot:32.0, carb:0, lip:2.5, kcal:163 },
+      "peito de frango cozido": { nome:"Peito de Frango (Grelhado)", prot:31.5, carb:0, lip:3.2, kcal:159 },
+      "patinho cru": { nome:"Patinho (Cru)", prot:35.9, carb:0, lip:4.5, kcal:195 },
+      "patinho cozido": { nome:"Patinho (Grelhado)", prot:32.0, carb:0, lip:7.0, kcal:210 },
+      "tilapia crua": { nome:"Tilápia (Crua)", prot:26.0, carb:0, lip:2.0, kcal:128 },
+      "tilapia cozida": { nome:"Tilápia (Grelhada)", prot:26.0, carb:0, lip:2.5, kcal:140 },
+      "coxa sobrecoxa crua": { nome:"Coxa c/ Sobrecoxa s/ pele (Crua)", prot:17.0, carb:0, lip:10.0, kcal:162 },
+      "coxa sobrecoxa cozida": { nome:"Coxa s/ pele (Assada)", prot:24.0, carb:0, lip:12.0, kcal:210 },
+      "musculo bovino cru": { nome:"Músculo (Cru)", prot:21.0, carb:0, lip:6.0, kcal:140 },
+      "acem bovino cru": { nome:"Acém (Cru)", prot:20.0, carb:0, lip:11.0, kcal:195 },
+      "salmao cru": { nome:"Salmão (Cru)", prot:20.0, carb:0, lip:13.0, kcal:208 },
+      "lombo suino cru": { nome:"Lombo Suíno c/ Capa (Cru)", prot:19.0, carb:0, lip:18.0, kcal:240 },
+      "ovo inteiro": { nome:"Ovo Inteiro", prot:13.0, carb:1.0, lip:11.0, kcal:155 },
+      "clara de ovo": { nome:"Clara de Ovo (Pasteurizada)", prot:10.9, carb:0.0, lip:0.0, kcal:48 },
+      "whey isolado": { nome:"Whey Protein Isolado", prot:85.0, carb:2.0, lip:1.0, kcal:360 },
+      "arroz parboilizado cru": { nome:"Arroz Parboilizado (Cru)", prot:7.0, carb:78.0, lip:0.3, kcal:344 },
+      "arroz parboilizado cozido": { nome:"Arroz Parboilizado (Cozido)", prot:2.5, carb:28.0, lip:0.2, kcal:128 },
+      "macarrao de arroz cru": { nome:"Macarrão de Arroz (Cru)", prot:3.0, carb:80.0, lip:0.5, kcal:366 },
+      "macarrao cozido": { nome:"Macarrão (Cozido)", prot:2.0, carb:24.0, lip:0.1, kcal:105 },
+      "mandioca crua": { nome:"Mandioca (Crua)", prot:1.0, carb:38.0, lip:0.3, kcal:164 },
+      "mandioca cozida": { nome:"Mandioca (Cozida)", prot:0.6, carb:30.0, lip:0.1, kcal:125 },
+      "batata doce crua": { nome:"Batata Doce (Crua)", prot:1.6, carb:18.0, lip:0.1, kcal:77 },
+      "batata doce cozida": { nome:"Batata Doce (Cozida)", prot:1.2, carb:20.0, lip:0.1, kcal:86 },
+      "batata baroa crua": { nome:"Batata Baroa/Salsa (Crua)", prot:1.0, carb:18.0, lip:0.2, kcal:80 },
+      "batata baroa cozida": { nome:"Batata Baroa/Salsa (Cozida)", prot:0.8, carb:18.0, lip:0.2, kcal:75 },
+      "abobora cabotia": { nome:"Abóbora Cabotia (Cozida)", prot:1.4, carb:10.8, lip:0.5, kcal:48 },
+      "batata inglesa crua": { nome:"Batata Inglesa (Crua)", prot:2.0, carb:17.0, lip:0.1, kcal:76 },
+      "batata inglesa cozida": { nome:"Batata Inglesa (Cozida)", prot:1.5, carb:16.0, lip:0.1, kcal:70 },
+      "aveia em flocos": { nome:"Aveia em Flocos", prot:11.0, carb:66.0, lip:7.0, kcal:394 },
+      "creme de arroz": { nome:"Creme de Arroz / Farinha", prot:7.0, carb:78.0, lip:1.0, kcal:350 },
+      "tapioca": { nome:"Goma de Tapioca", prot:0.0, carb:60.0, lip:0.0, kcal:240 },
+      "feijao cozido": { nome:"Feijão (Cozido)", prot:4.5, carb:14.0, lip:0.5, kcal:76 },
+      "atum em agua": { nome:"Atum em Água (Escorrido)", prot:26.0, carb:0, lip:1.0, kcal:119 },
+      "banana": { nome:"Banana", prot:1.3, carb:26.0, lip:0.3, kcal:98 },
+      "azeite": { nome:"Azeite Extra Virgem", prot:0, carb:0, lip:100.0, kcal:900 },
+      "pasta de amendoim": { nome:"Pasta de Amendoim Integral", prot:24.0, carb:22.0, lip:48.0, kcal:580 },
+      "castanha do para": { nome:"Castanha do Pará", prot:14.0, carb:12.0, lip:61.0, kcal:656 },
+      "coco fresco": { nome:"Coco Fresco", prot:3.0, carb:6.0, lip:30.0, kcal:300 }
+    };
+
+    function toggleTheme() {
+      const body = document.body;
+      const icon = document.getElementById('themeIcon');
+      if (body.getAttribute('data-theme') === 'dark') {
+        body.setAttribute('data-theme', 'light');
+        icon.textContent = '☀️';
+      } else {
+        body.setAttribute('data-theme', 'dark');
+        icon.textContent = '🌙';
+      }
+    }
+
+    function showMeal(num, event) {
+      document.querySelectorAll('.meal-card').forEach(card => card.classList.remove('active'));
+      const target = document.getElementById('meal' + num) || document.getElementById('mealstrategy');
+      if(target) target.classList.add('active');
+      document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+      event.target.classList.add('active');
+    }
+
+    function openModal(id) {
+      document.getElementById(id + 'Modal').classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal(id) {
+      document.getElementById(id + 'Modal').classList.remove('active');
+      document.body.style.overflow = 'auto';
+    }
+
+    document.querySelectorAll('.modal').forEach(modal => {
+      modal.addEventListener('click', e => {
+        if (e.target === modal) closeModal(modal.id.replace('Modal', ''));
+      });
+    });
+
+    function togglePeso(btn, cardId) {
+      document.getElementById(cardId).classList.toggle('show-pronto');
+    }
+
+    function setCarbo(btn, state, cardId) {
+      const card = document.getElementById(cardId);
+      btn.closest('.meal-actions').querySelectorAll('.act-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      card.classList.remove('show-alto', 'show-baixo');
+      if (state === 'alto') card.classList.add('show-alto');
+      if (state === 'baixo') card.classList.add('show-baixo');
+      card.querySelectorAll('.val-carbo').forEach(val => {
+        val.innerText = val.getAttribute('data-' + state);
+      });
+    }
+
+    function showSuggestions(target) {
+      const input = document.getElementById(target + 'Name');
+      const container = document.getElementById(target + 'Suggestions');
+      const val = input.value.toLowerCase().trim();
+      container.innerHTML = '';
+      if (val.length < 1) { container.style.border = 'none'; return; }
+      const keys = Object.keys(tacoDB).filter(k => k.includes(val) || tacoDB[k].nome.toLowerCase().includes(val)).slice(0, 6);
+      if (keys.length > 0) container.style.border = '2px solid var(--border)';
+      else container.style.border = 'none';
+      keys.forEach(k => {
+        const div = document.createElement('div');
+        div.className = 'suggestion-item';
+        div.innerHTML = `<strong>${tacoDB[k].nome}</strong>`;
+        div.onclick = () => { input.value = tacoDB[k].nome; container.innerHTML = ''; container.style.border = 'none'; };
+        container.appendChild(div);
+      });
+    }
+
+    function getByName(name) {
+      const n = name.toLowerCase().trim();
+      return tacoDB[Object.keys(tacoDB).find(k => tacoDB[k].nome.toLowerCase() === n)];
+    }
+
+    function calculate() {
+      const from = getByName(document.getElementById('fromName').value);
+      const to = getByName(document.getElementById('toName').value);
+      const grams = Number(document.getElementById('fromGrams').value);
+      const mode = document.getElementById('calcMode').value;
+      const res = document.getElementById('calcResult');
+      if (!from || !to) { res.innerHTML = '<div class="result-box" style="border-color:var(--primary);">❌ Alimento não encontrado na base.</div>'; return; }
+      const targetValue = (from[mode] / 100) * grams;
+      if (to[mode] === 0) { res.innerHTML = `<div class="result-box" style="border-color:var(--primary);">❌ O alimento destino (${to.nome}) não possui esse macronutriente (0g).</div>`; return; }
+      const destGrams = Math.round((targetValue / (to[mode] / 100)));
+      const dict = { kcal:'Calorias', prot:'Proteína', carb:'Carboidratos', lip:'Gordura' };
+      res.innerHTML = `
+        <div class="result-box" style="border-color:#2ecc71;">
+          <h4 style="color:#2ecc71; margin-bottom:1rem;">✅ Equivalência por ${dict[mode]}</h4>
+          <p><strong>Origem:</strong> ${grams}g de ${from.nome} = ${targetValue.toFixed(1)} ${mode==='kcal'?'kcal':'g'}</p>
+          <hr style="border:0; border-top:1px solid var(--border); margin:1rem 0;">
+          <p style="font-size:1.2rem;">Consuma <strong>${destGrams}g</strong> de ${to.nome}</p>
+        </div>`;
+    }
+
+    function toggleWorkout(letter) {
+      const content = document.getElementById('workout' + letter);
+      const arrow = document.getElementById('arrow' + letter);
+      if (content.style.display === 'none' || !content.style.display) {
+        content.style.display = 'block';
+        arrow.textContent = '▲';
+      } else {
+        content.style.display = 'none';
+        arrow.textContent = '▼';
+      }
+    }
+
+    function toggleFreq(cb) {
+      const container = cb.closest('.shopping-item');
+      const select = container.querySelector('.freq-select');
+      if (select) select.style.display = cb.checked ? 'block' : 'none';
+      if (cb.checked) container.classList.add('selected');
+      else container.classList.remove('selected');
+    }
+
+    function clearSelections() {
+      document.querySelectorAll('.shopping-item input[type="checkbox"]').forEach(cb => {
+        if (!cb.hasAttribute('checked')) {
+          cb.checked = false;
+          toggleFreq(cb);
+        }
+      });
+      document.getElementById('shoppingResult').innerHTML = '';
+    }
+
+    function generateShoppingList() {
+      const checks = document.querySelectorAll('.shop-item-check:checked');
+      if (checks.length === 0) {
+        document.getElementById('shoppingResult').innerHTML = '<div class="result-box" style="border-color:var(--carb-low);">⚠️ Selecione ao menos um item.</div>';
+        return;
+      }
+      const sections = {};
+      checks.forEach(cb => {
+        const item = cb.getAttribute('data-item');
+        const daily = parseFloat(cb.getAttribute('data-daily'));
+        const unit = cb.getAttribute('data-unit');
+        const section = cb.getAttribute('data-section');
+        const freqSelect = cb.closest('.shopping-item').querySelector('.freq-select');
+        const freq = freqSelect ? parseInt(freqSelect.value) : 7;
+        const total = Math.ceil((daily * freq * 2) / (unit === 'kit' ? 1 : 1));
+        const displayTotal = unit === 'kit' ? 1 : total;
+        if (!sections[section]) sections[section] = [];
+        sections[section].push({ name: item, qty: displayTotal, unit: unit });
+      });
+
+      let txtContent = '=== LISTA DE COMPRAS — VILMA ALVES (14 dias) ===\n\n';
+      let htmlContent = '<div class="shopping-result"><h3>📋 Sua Lista de Compras (14 dias)</h3>';
+
+      for (const section in sections) {
+        const sectionItems = sections[section];
+        txtContent += `[ ${section.toUpperCase()} ]\n`;
+        htmlContent += `<div class="subsection" style="background:rgba(255,255,255,0.1); border-left-color:#fff; margin-bottom:1rem;"><h4 style="color:#fff;">${section}</h4><ul style="list-style:none; padding:0; color:#fff;">`;
+        sectionItems.forEach(item => {
+          let displayQty = Number.isInteger(item.qty) ? item.qty : item.qty.toFixed(2);
+          txtContent += `- ${item.name}: ${displayQty} ${item.unit}\n`;
+          htmlContent += `<li style="margin-bottom:0.5rem;"><strong>${item.name}</strong>: ${displayQty} ${item.unit}</li>`;
+        });
+        txtContent += '\n';
+        htmlContent += '</ul></div>';
+      }
+
+      htmlContent += `<button class="btn" style="margin-top:1.5rem; background:#2ecc71;" onclick="downloadTXT()">💾 Baixar Bloco de Notas (.txt)</button></div>`;
+      window.currentTxtList = txtContent;
+      document.getElementById('shoppingResult').innerHTML = htmlContent;
+    }
+
+    function downloadTXT() {
+      if (!window.currentTxtList) return;
+      const blob = new Blob([window.currentTxtList], { type: 'text/plain;charset=utf-8' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'Lista_Compras_Vilma_Alves.txt';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+
+    const editableElements = ['edit_suplementos'];
+    document.addEventListener('DOMContentLoaded', () => {
+      editableElements.forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        const saved = localStorage.getItem('dyn_diet_vilma_v2_' + id);
+        if (saved) el.innerHTML = saved;
+        el.addEventListener('blur', () => {
+          localStorage.setItem('dyn_diet_vilma_v2_' + id, el.innerHTML);
+        });
+      });
+
+      document.querySelectorAll('.shop-item-check[checked]').forEach(cb => {
+        cb.checked = true;
+        const sel = cb.closest('.shopping-item').querySelector('.freq-select');
+        if (sel) sel.style.display = 'block';
+        cb.closest('.shopping-item').classList.add('selected');
+      });
+    });
+  </script>
+</body>
+</html>
