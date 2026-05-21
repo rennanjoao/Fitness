@@ -1,0 +1,1105 @@
+Aqui está o arquivo HTML editado e limpo, aplicando exatamente todas as suas solicitações de remoção de texto, exclusão do IMC/Peso Ideal, limpeza de scripts inativos e implementação do novo campo de estimativa de gordura com o aviso claro exigido.
+
+```html
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Anamnese — Protocolo Personalizado</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0B0B0C;--surf:#151517;--card:#1C1C1F;--graf:#232326;
+  --border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.11);
+  --crimson:#B11226;--crimson-h:#D11830;--crimson-d:#7A0D1B;
+  --crimson-g:rgba(177,18,38,0.12);--crimson-b:rgba(177,18,38,0.06);
+  --green:#3DC97A;--green-g:rgba(61,201,122,0.10);
+  --amber:#D4900A;--amber-g:rgba(212,144,10,0.10);
+  --blue:#378ADD;--blue-g:rgba(55,138,221,0.10);
+  --text:#F5F5F5;--sub:#8B8B92;--muted:#55555C;
+  --r:16px;--r-sm:11px;--r-xs:8px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html{scroll-behavior:smooth;}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100dvh;-webkit-font-smoothing:antialiased;}
+
+/* ── GATE ── */
+#gate{
+  position:fixed;inset:0;z-index:200;
+  background:var(--bg);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:32px;gap:20px;
+  animation:fadeIn .35s ease;
+}
+#gate.hidden{display:none;}
+.gate-logo{font-family:'Cormorant Garamond',serif;font-weight:700;font-size:1.5rem;letter-spacing:.1em;text-transform:uppercase;color:var(--crimson);}
+.gate-sub{font-size:.82rem;color:var(--sub);text-align:center;max-width:260px;line-height:1.6;}
+.gate-input-wrap{display:flex;flex-direction:column;gap:10px;width:100%;max-width:320px;}
+.gate-lbl{font-size:.65rem;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);}
+.gate-fi{
+  padding:14px 16px;background:var(--surf);border:1px solid var(--border2);
+  border-radius:var(--r-sm);color:var(--text);font-family:'Inter',sans-serif;font-size:1rem;
+  outline:none;width:100%;text-align:center;letter-spacing:.2em;
+  transition:border-color .2s;-webkit-appearance:none;
+}
+.gate-fi:focus{border-color:rgba(177,18,38,.4);}
+.gate-btn{
+  width:100%;padding:15px;background:var(--crimson);color:#fff;border:none;border-radius:var(--r-sm);
+  font-family:'Cormorant Garamond',serif;font-size:1rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  cursor:pointer;transition:all .2s;box-shadow:0 4px 20px rgba(177,18,38,.25);
+}
+.gate-btn:hover{background:var(--crimson-h);}
+.gate-err{font-size:.78rem;color:#f87171;text-align:center;min-height:1.2em;}
+.gate-ring{
+  width:72px;height:72px;border-radius:50%;
+  border:1px solid var(--crimson);background:var(--crimson-g);
+  display:flex;align-items:center;justify-content:center;font-size:1.8rem;
+  margin-bottom:4px;
+}
+
+/* ── TOPBAR ── */
+.topbar{
+  position:sticky;top:0;z-index:60;height:52px;
+  display:flex;align-items:center;justify-content:space-between;padding:0 22px;
+  background:rgba(11,11,12,0.88);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);
+}
+.tb-brand{font-family:'Cormorant Garamond',serif;font-weight:700;font-size:1rem;letter-spacing:.12em;text-transform:uppercase;color:var(--crimson);}
+.tb-right{display:flex;gap:8px;}
+.tb-pill{font-size:.68rem;font-weight:500;color:var(--muted);cursor:pointer;padding:6px 12px;border-radius:99px;border:1px solid var(--border2);background:transparent;font-family:'Inter',sans-serif;transition:color .2s;}
+.tb-pill:hover{color:var(--sub);}
+
+/* ── PROGRESS ── */
+.prog-wrap{max-width:660px;margin:0 auto;padding:18px 22px 0;}
+.prog-meta{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;}
+.prog-label{font-size:.65rem;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);}
+.prog-pct{font-family:'Cormorant Garamond',serif;font-size:.85rem;font-weight:600;color:var(--crimson);}
+.prog-track{height:2px;background:var(--graf);border-radius:99px;overflow:visible;position:relative;}
+.prog-fill{height:2px;background:var(--crimson);border-radius:99px;transition:width .5s cubic-bezier(.4,0,.2,1);width:0%;position:relative;}
+.prog-fill::after{content:'';position:absolute;right:-1px;top:-2px;width:6px;height:6px;border-radius:50%;background:var(--crimson);box-shadow:0 0 8px 2px rgba(177,18,38,.45);}
+
+/* ── HERO ── */
+.hero{max-width:660px;margin:20px auto 0;padding:0 22px;}
+.hero-eyebrow{font-size:.6rem;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:var(--crimson);margin-bottom:8px;display:flex;align-items:center;gap:8px;}
+.hero-eyebrow::before{content:'';display:block;width:18px;height:1px;background:var(--crimson);opacity:.6;}
+.hero-title{font-family:'Cormorant Garamond',serif;font-weight:700;font-size:2rem;line-height:1.1;margin-bottom:6px;}
+.hero-sub{font-size:.84rem;color:var(--sub);line-height:1.6;}
+
+/* ── MAIN ── */
+.main{max-width:660px;margin:24px auto 0;padding:0 22px 60px;}
+
+/* ── SECTION ── */
+.sec{display:flex;flex-direction:column;gap:14px;margin-bottom:24px;}
+.sec.hidden{display:none;}
+.sec-head{display:flex;align-items:center;gap:10px;padding:4px 0 2px;}
+.sec-num{font-family:monospace;font-size:.62rem;color:var(--crimson);border:1px solid var(--crimson-d);border-radius:4px;padding:2px 7px;letter-spacing:.08em;flex-shrink:0;}
+.sec-title{font-family:'Cormorant Garamond',serif;font-weight:700;font-size:1.2rem;letter-spacing:.01em;}
+
+/* ── CARD ── */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.4);transition:border-color .25s;}
+.card:focus-within{border-color:rgba(177,18,38,.25);}
+.card-lbl{font-size:.6rem;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);padding:14px 18px 0;}
+.card-body{padding:14px 18px 18px;display:flex;flex-direction:column;gap:14px;}
+.card-divider{height:1px;background:var(--border);margin:2px 0;}
+
+/* ── GENDER SELECTOR ── */
+.gender-wrap{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.gender-btn{
+  padding:20px 16px;border-radius:var(--r-sm);
+  border:1.5px solid var(--border2);background:var(--surf);
+  cursor:pointer;text-align:center;
+  font-family:'Cormorant Garamond',serif;font-size:1.2rem;font-weight:700;
+  color:var(--sub);transition:all .2s;letter-spacing:.05em;
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+}
+.gender-btn span{font-family:'Inter',sans-serif;font-size:.72rem;font-weight:500;letter-spacing:.08em;text-transform:uppercase;}
+.gender-btn:hover{border-color:var(--border2);color:var(--text);}
+.gender-btn.sel-f{border-color:var(--crimson);background:var(--crimson-g);color:var(--text);}
+.gender-btn.sel-m{border-color:var(--blue);background:var(--blue-g);color:var(--text);}
+
+/* ── FIELDS ── */
+.field{display:flex;flex-direction:column;gap:6px;}
+.f-lbl{font-size:.68rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--sub);}
+.fi{
+  padding:12px 14px;background:var(--surf);border:1px solid var(--border2);
+  border-radius:var(--r-sm);color:var(--text);font-family:'Inter',sans-serif;
+  font-size:.92rem;outline:none;width:100%;
+  transition:border-color .2s,box-shadow .2s;-webkit-appearance:none;
+}
+.fi:focus{border-color:rgba(177,18,38,.45);box-shadow:0 0 0 3px rgba(177,18,38,.07);}
+textarea.fi{resize:none;min-height:80px;line-height:1.6;}
+.fi-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.fi-row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+
+/* ── CHOICE BUTTONS ── */
+.choices{display:flex;flex-wrap:wrap;gap:8px;}
+.choices.col{flex-direction:column;}
+.choices.g2{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.choices.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+.ch{
+  padding:11px 14px;min-height:44px;
+  background:var(--surf);border:1px solid var(--border2);border-radius:var(--r-sm);
+  cursor:pointer;font-size:.86rem;font-weight:500;color:var(--sub);
+  transition:all .15s;display:flex;align-items:center;justify-content:center;
+  text-align:center;line-height:1.3;user-select:none;-webkit-user-select:none;
+}
+.ch:active{transform:scale(.97);}
+.ch.sel{border-color:var(--crimson);background:var(--crimson-g);color:var(--text);}
+.ch.sel-green{border-color:var(--green);background:var(--green-g);color:var(--green);}
+.ch.sel-amber{border-color:var(--amber);background:var(--amber-g);color:var(--amber);}
+.ch.sel-red{border-color:#f87171;background:rgba(248,113,113,.1);color:#f87171;}
+
+/* ── SLIDER ── */
+.slider-wrap{display:flex;flex-direction:column;gap:8px;}
+.slider-row{display:flex;align-items:center;gap:12px;}
+input[type="range"]{flex:1;height:4px;accent-color:var(--crimson);cursor:pointer;padding:0;border:none;background:transparent;-webkit-appearance:auto;}
+.slider-val{font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:700;color:var(--crimson);width:28px;text-align:center;}
+.slider-ticks{display:flex;justify-content:space-between;font-size:.62rem;color:var(--muted);padding:0 2px;}
+
+/* ── NOTA ── */
+.nota{display:flex;gap:10px;background:rgba(212,144,10,.05);border:1px solid rgba(212,144,10,.15);border-radius:var(--r-xs);padding:11px 14px;font-size:.78rem;color:rgba(212,144,10,.8);line-height:1.55;}
+
+/* ── RCQ CARDS ── */
+.stats-row{display:grid;grid-template-columns:1fr;gap:10px;}
+.stat-card{background:var(--surf);border:1px solid var(--border2);border-radius:var(--r-sm);padding:12px 14px;text-align:center;transition:border-color .3s;}
+.stat-card.active{border-color:rgba(177,18,38,.35);}
+.stat-lbl{font-size:.6rem;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:4px;}
+.stat-val{font-family:'Cormorant Garamond',serif;font-size:1.5rem;font-weight:700;color:var(--text);line-height:1;}
+.stat-status{font-size:.68rem;font-weight:600;margin-top:4px;}
+
+/* ── LEGAL ── */
+.legal{background:var(--card);border:1px solid var(--border);border-left:2px solid var(--crimson);border-radius:var(--r-xs);padding:18px 20px;font-size:.8rem;color:var(--sub);line-height:1.7;}
+.legal strong{color:var(--text);}
+
+/* ── SUBMIT AREA ── */
+.submit-wrap{display:flex;flex-direction:column;gap:12px;margin-top:8px;}
+.btn-submit{
+  width:100%;padding:17px;background:var(--crimson);color:#fff;border:none;border-radius:var(--r-sm);
+  font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-weight:700;
+  letter-spacing:.1em;text-transform:uppercase;cursor:pointer;
+  transition:all .2s;box-shadow:0 4px 24px rgba(177,18,38,.3);
+}
+.btn-submit:hover:not(:disabled){background:var(--crimson-h);transform:translateY(-1px);}
+.btn-submit:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none;}
+
+/* ── SUCCESS ── */
+#successScreen{display:none;position:fixed;inset:0;z-index:200;background:var(--bg);flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:32px;gap:18px;}
+#successScreen.show{display:flex;animation:fadeIn .4s ease;}
+@keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+.suc-ring{width:88px;height:88px;border-radius:50%;border:1.5px solid var(--crimson);background:var(--crimson-g);display:flex;align-items:center;justify-content:center;font-size:2.2rem;box-shadow:0 0 40px rgba(177,18,38,.15);animation:pop .5s .1s cubic-bezier(.34,1.56,.64,1) both;}
+@keyframes pop{from{transform:scale(.4);opacity:0;}to{transform:scale(1);opacity:1;}}
+.suc-title{font-family:'Cormorant Garamond',serif;font-weight:700;font-size:1.9rem;animation:slideUp .4s .2s ease both;}
+.suc-sub{font-size:.88rem;color:var(--sub);line-height:1.65;max-width:280px;animation:slideUp .4s .3s ease both;}
+.suc-nome{color:var(--crimson);font-weight:600;}
+@keyframes slideUp{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
+.btn-novo{margin-top:4px;padding:13px 28px;background:var(--card);border:1px solid var(--border2);color:var(--sub);border-radius:var(--r-sm);font-family:'Inter',sans-serif;font-size:.85rem;font-weight:500;cursor:pointer;transition:all .2s;animation:slideUp .4s .4s ease both;}
+.btn-novo:hover{color:var(--text);}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(10px);background:var(--graf);border:1px solid var(--border2);color:var(--text);padding:10px 22px;border-radius:99px;font-size:.78rem;font-weight:500;opacity:0;transition:all .3s;pointer-events:none;white-space:nowrap;z-index:999;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.toast.ok{background:#0E2018;border-color:var(--green);color:var(--green);}
+.toast.err{background:#1A0C0E;border-color:var(--crimson);color:#f87171;}
+
+/* ── CHECKBOXES ── */
+.checks{display:flex;flex-wrap:wrap;gap:8px;}
+.checks.col{flex-direction:column;}
+.ck{position:relative;padding:10px 14px;background:var(--surf);border:1px solid var(--border2);border-radius:var(--r-sm);cursor:pointer;font-size:.85rem;font-weight:500;color:var(--sub);transition:all .15s;user-select:none;display:flex;align-items:center;gap:8px;-webkit-user-select:none;}
+.ck:active{transform:scale(.98);}
+.ck.checked{border-color:var(--crimson);background:var(--crimson-g);color:var(--text);}
+.ck-box{width:16px;height:16px;border-radius:4px;border:1.5px solid var(--border2);background:var(--surf);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:.7rem;transition:all .15s;}
+.ck.checked .ck-box{background:var(--crimson);border-color:var(--crimson);color:#fff;}
+
+@media(max-width:420px){
+  .fi-row,.fi-row3,.stats-row,.gender-wrap{grid-template-columns:1fr 1fr;}
+  .fi-row3{grid-template-columns:1fr 1fr;}
+  .choices.g3{grid-template-columns:1fr 1fr;}
+  .hero-title{font-size:1.7rem;}
+  .main,.prog-wrap,.hero{padding-left:16px;padding-right:16px;}
+}
+</style>
+</head>
+<body>
+
+<div id="successScreen">
+  <div class="suc-ring">✓</div>
+  <div class="suc-title">Anamnese enviada</div>
+  <div class="suc-sub">Obrigada, <span class="suc-nome" id="sucNome"></span>. O Rennan recebeu seus dados e entrará em contato em breve.</div>
+  <button class="btn-novo" onclick="document.getElementById('successScreen').classList.remove('show')">Fechar</button>
+</div>
+
+<div id="gate">
+  <div class="gate-ring">🔒</div>
+  <div class="gate-logo">Anamnese</div>
+  <div class="gate-sub">Área restrita. Digite o código de acesso fornecido pelo seu consultor.</div>
+  <div class="gate-input-wrap">
+    <div class="gate-lbl">Código de acesso</div>
+    <input class="gate-fi" type="password" id="gateInput" placeholder="••••••••" autocomplete="off" onkeydown="if(event.key==='Enter')checkGate()">
+    <button class="gate-btn" onclick="checkGate()">Acessar</button>
+    <div class="gate-err" id="gateErr"></div>
+  </div>
+</div>
+
+<div class="topbar">
+  <div class="tb-brand">Anamnese</div>
+  <div class="tb-right">
+    <button class="tb-pill" onclick="clearAll()">Limpar</button>
+  </div>
+</div>
+
+<div class="prog-wrap">
+  <div class="prog-meta">
+    <span class="prog-label" id="progLabel">Preenchimento</span>
+    <span class="prog-pct" id="progPct">0%</span>
+  </div>
+  <div class="prog-track"><div class="prog-fill" id="progFill"></div></div>
+</div>
+
+<div class="hero" style="margin-top:24px;">
+  <div class="hero-eyebrow">Protocolo Personalizado</div>
+  <div class="hero-title">Avaliação & Diagnóstico</div>
+  <div class="hero-sub">Preencha com atenção. Quanto mais preciso, mais personalizado será o seu protocolo.</div>
+</div>
+
+<div class="main">
+
+  <div class="sec">
+    <div class="sec-head"><span class="sec-num">01</span><span class="sec-title">Quem é você</span></div>
+    <div class="card">
+      <div class="card-lbl">Dados pessoais</div>
+      <div class="card-body">
+        <div class="fi-row">
+          <div class="field"><div class="f-lbl">Nome completo</div><input class="fi" type="text" name="nome" id="f_nome" placeholder="Seu nome" autocomplete="name"></div>
+          <div class="field"><div class="f-lbl">Data de nascimento</div><input class="fi" type="date" name="data_nasc"></div>
+        </div>
+        <div class="fi-row">
+          <div class="field"><div class="f-lbl">WhatsApp</div><input class="fi" type="tel" name="whatsapp" placeholder="(11) 99999-9999" autocomplete="tel"></div>
+          <div class="field"><div class="f-lbl">E-mail</div><input class="fi" type="email" name="email" placeholder="voce@email.com" autocomplete="email"></div>
+        </div>
+        <div class="field"><div class="f-lbl">Cidade / Estado</div><input class="fi" type="text" name="cidade" placeholder="Ex: São Paulo / SP"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-lbl">Gênero</div>
+      <div class="card-body">
+        <div class="gender-wrap">
+          <div class="gender-btn" id="gBtnF" onclick="setGender('F')">
+            ♀ <span>Feminino</span>
+          </div>
+          <div class="gender-btn" id="gBtnM" onclick="setGender('M')">
+            ♂ <span>Masculino</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-head"><span class="sec-num">02</span><span class="sec-title">Seu ponto de partida</span></div>
+    <div class="stats-row" id="statsRow" style="margin-bottom:4px;">
+      <div class="stat-card" id="ccRCQ"><div class="stat-lbl">RCQ</div><div class="stat-val" id="rcqVal">—</div><div class="stat-status" id="rcqStatus"></div></div>
+    </div>
+    
+    <div class="card">
+      <div class="card-body">
+        <div class="fi-row3">
+          <div class="field"><div class="f-lbl">Altura (cm)</div><input class="fi" type="number" name="altura" id="f_altura" placeholder="170" min="100" max="250" oninput="computeStats()"></div>
+          <div class="field"><div class="f-lbl">Peso (kg)</div><input class="fi" type="number" name="peso" id="f_peso" step=".1" placeholder="70.0" oninput="computeStats()"></div>
+          <div class="field">
+            <div class="f-lbl">% Gordura Estimado</div>
+            <input class="fi" type="text" name="bf_estimado" id="f_bf_est" readonly placeholder="Requer Altura e Cintura" style="background: var(--bg); border-color: var(--border);">
+            <div style="font-size: 0.6rem; color: var(--amber); margin-top: 4px; line-height: 1.3;">
+              ⚠ Estimativa com base nos dados. Não substitui avaliações precisas.
+            </div>
+          </div>
+        </div>
+        <div class="fi-row">
+          <div class="field"><div class="f-lbl">Cintura no umbigo (cm)</div><input class="fi" type="number" name="cintura" id="f_cintura" step=".1" placeholder="80" oninput="computeStats()"></div>
+          <div class="field"><div class="f-lbl">Quadril (cm)</div><input class="fi" type="number" name="quadril" id="f_quadril" step=".1" placeholder="98" oninput="computeStats()"></div>
+        </div>
+        <div class="fi-row">
+          <div class="field"><div class="f-lbl">Braço contraído D / E (cm)</div><div class="fi-row"><input class="fi" type="number" step=".1" name="braco_d" placeholder="Dir."><input class="fi" type="number" step=".1" name="braco_e" placeholder="Esq."></div></div>
+          <div class="field"><div class="f-lbl">Coxa D / E (cm)</div><div class="fi-row"><input class="fi" type="number" step=".1" name="coxa_d" placeholder="Dir."><input class="fi" type="number" step=".1" name="coxa_e" placeholder="Esq."></div></div>
+        </div>
+        <div class="fi-row">
+          <div class="field"><div class="f-lbl">Panturrilha D / E (cm)</div><div class="fi-row"><input class="fi" type="number" step=".1" name="pant_d" placeholder="Dir."><input class="fi" type="number" step=".1" name="pant_e" placeholder="Esq."></div></div>
+          <div class="field"><div class="f-lbl">Histórico de peso</div><input class="fi" type="text" name="hist_peso" placeholder="Ex: máx 90kg, mín 62kg, hoje estável"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-head"><span class="sec-num">03</span><span class="sec-title">Para onde você quer chegar</span></div>
+    <div class="card">
+      <div class="card-body">
+        <div class="fi-row">
+          <div class="field"><div class="f-lbl">Peso alvo (kg)</div><input class="fi" type="number" name="meta_peso" step=".1" placeholder="65"></div>
+          <div class="field"><div class="f-lbl">Prazo (meses)</div><input class="fi" type="number" name="meta_prazo" min="1" max="36" placeholder="6"></div>
+        </div>
+        <div class="field">
+          <div class="f-lbl">Prioridade principal</div>
+          <div class="choices" data-group="meta_prioridade">
+            <div class="ch" data-value="Hipertrofia">Hipertrofia</div>
+            <div class="ch" data-value="Perda de gordura">Perda de gordura</div>
+            <div class="ch" data-value="Recomposição">Recomposição</div>
+            <div class="ch" data-value="Performance">Performance</div>
+            <div class="ch" data-value="Saúde / Longevidade">Saúde / Longevidade</div>
+          </div>
+        </div>
+        <div class="field"><div class="f-lbl">Objetivos detalhados (curto, médio e longo prazo)</div><textarea class="fi" name="objetivos" placeholder="Descreva seus objetivos com o máximo de detalhes possível…" style="min-height:96px;"></textarea></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-head"><span class="sec-num">04</span><span class="sec-title">Sua rotina real</span></div>
+    <div class="card">
+      <div class="card-body">
+        <div class="field"><div class="f-lbl">Profissão e horário de trabalho</div><textarea class="fi" name="profissao" placeholder="Ex: Analista, 8h–18h, home office"></textarea></div>
+        <div class="field"><div class="f-lbl">Estudos (horário)</div><input class="fi" type="text" name="estudos" placeholder="Ex: Faculdade noturna 19h–22h ou Não estudo"></div>
+        <div class="fi-row">
+          <div class="field"><div class="f-lbl">Horário de dormir</div><input class="fi" type="text" name="horario_dormir" placeholder="Ex: 23h"></div>
+          <div class="field"><div class="f-lbl">Horário de acordar</div><input class="fi" type="text" name="horario_acordar" placeholder="Ex: 6h30"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-head"><span class="sec-num">05</span><span class="sec-title">Historico de treino</span></div>
+    <div class="card">
+      <div class="card-lbl">Experiência</div>
+      <div class="card-body">
+        <div class="fi-row">
+          <div class="field"><div class="f-lbl">Anos treinando</div><input class="fi" type="number" name="anos_treino" min="0" placeholder="Ex: 3"></div>
+          <div class="field"><div class="f-lbl">Nível atual</div>
+            <div class="choices g3" data-group="nivel_treino">
+              <div class="ch" data-value="Iniciante">Iniciante</div>
+              <div class="ch" data-value="Intermediário">Intermediário</div>
+              <div class="ch" data-value="Avançado">Avançado</div>
+            </div>
+          </div>
+        </div>
+        <div class="field"><div class="f-lbl">Atividades físicas atuais</div><textarea class="fi" name="atividades" placeholder="Ex: Musculação 4x/semana + caminhada fins de semana"></textarea></div>
+        <div class="field"><div class="f-lbl">Horários dos treinos</div><input class="fi" type="text" name="horarios_treino" placeholder="Ex: Seg/Qua/Sex 7h, Sáb 9h"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-lbl">Disponibilidade</div>
+      <div class="card-body">
+        <div class="fi-row">
+          <div class="field"><div class="f-lbl">Dias disponíveis por semana</div><input class="fi" type="number" name="dias_treino" min="1" max="7" placeholder="Ex: 4"></div>
+          <div class="field"><div class="f-lbl">Duração máxima por sessão</div><input class="fi" type="text" name="duracao_sessao" placeholder="Ex: 60 min"></div>
+        </div>
+        <div class="field"><div class="f-lbl">Tem acesso a academia?</div>
+          <div class="choices g3" data-group="tem_academia">
+            <div class="ch" data-value="Sim" data-theme="green">Sim</div>
+            <div class="ch" data-value="Home gym">Home gym</div>
+            <div class="ch" data-value="Não">Não</div>
+          </div>
+        </div>
+        <div class="field"><div class="f-lbl">Equipamentos disponíveis (se home gym)</div><input class="fi" type="text" name="equipamentos" placeholder="Ex: Barras, halteres, colchonete ou N/A"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-lbl">Diagnóstico atual</div>
+      <div class="card-body">
+        <div class="field"><div class="f-lbl">Há quanto tempo não tira 1–2 semanas de descanso?</div><input class="fi" type="text" name="descanso_treino" placeholder="Ex: 8 meses"></div>
+        <div class="field"><div class="f-lbl">Periodiza o treinamento?</div>
+          <div class="choices" data-group="periodiza">
+            <div class="ch" data-value="Não">Não</div>
+            <div class="ch" data-value="Sim">Sim</div>
+            <div class="ch" data-value="Às vezes">Às vezes</div>
+          </div>
+        </div>
+        <div class="field"><div class="f-lbl">Sente estagnação de resultados?</div>
+          <div class="choices" data-group="estagnacao">
+            <div class="ch" data-value="Não">Não</div>
+            <div class="ch" data-value="Sim, recente" data-theme="amber">Sim, recente</div>
+            <div class="ch" data-value="Sim, há muito tempo" data-theme="red">Sim, há muito tempo</div>
+          </div>
+        </div>
+        <div class="field"><div class="f-lbl">Pump muscular durante o treino</div>
+          <div class="choices" data-group="pump">
+            <div class="ch" data-value="Inexistente" data-theme="red">Inexistente</div>
+            <div class="ch" data-value="Fraco" data-theme="amber">Fraco</div>
+            <div class="ch" data-value="Bom" data-theme="green">Bom</div>
+            <div class="ch" data-value="Ótimo" data-theme="green">Ótimo</div>
+          </div>
+        </div>
+        <div class="field"><div class="f-lbl">Lesões ativas ou histórico ortopédico relevante</div><textarea class="fi" name="lesoes" placeholder="Ex: Lesão no ombro esquerdo há 6 meses, evito supino com barra. Ou Nenhuma."></textarea></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-head"><span class="sec-num">06</span><span class="sec-title">Historico de Substâncias</span></div>
+    <div class="card">
+      <div class="card-body">
+        <div class="field"><div class="f-lbl">Remédios prescritos (histórico passado e presente)</div><textarea class="fi" name="remedios" placeholder="Ex: Omeprazol 20mg diário há 2 anos. Ou Nenhum."></textarea></div>
+        <div class="field"><div class="f-lbl">Drogas lícitas / ilícitas (histórico passado e presente)</div><textarea class="fi" name="drogas" placeholder="Ex: Álcool social nos fins de semana. Ou Nenhuma."></textarea></div>
+        <div class="field"><div class="f-lbl">Hormônios / anabolizantes / anticoncepcionais</div>
+          <div class="nota">⚕ Cite histórico, uso atual e intenção dentro da consultoria. A escolha é individual.</div>
+          <textarea class="fi" name="hormonios" placeholder="Ex: Anticoncepcional oral há 3 anos. Sem anabolizantes. Ou Nenhum."></textarea>
+        </div>
+        <div class="field"><div class="f-lbl">Estimulantes (café, pré-treino, termogênicos)</div><textarea class="fi" name="estimulantes" placeholder="Ex: 2 cafés por dia, pré-treino 3x/semana"></textarea></div>
+        <div class="field"><div class="f-lbl">Suplementação atual completa</div><textarea class="fi" name="suplementacao" placeholder="Ex: Creatina 5g/dia, Whey 30g pós-treino, Vitamina D 5000UI, Magnésio…"></textarea></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-head"><span class="sec-num">07</span><span class="sec-title">Alimentação & digestão</span></div>
+    <div class="card">
+      <div class="card-body">
+        <div class="field"><div class="f-lbl">Litros de água por dia</div>
+          <div class="choices" data-group="hidratacao">
+            <div class="ch" data-value="≤1L" data-theme="red">≤ 1L</div>
+            <div class="ch" data-value="2L" data-theme="amber">2L</div>
+            <div class="ch" data-value="3L">3L</div>
+            <div class="ch" data-value="4L" data-theme="green">4L</div>
+            <div class="ch" data-value="5L+" data-theme="green">5L+</div>
+          </div>
+        </div>
+        <div class="field"><div class="f-lbl">Recordatório alimentar — dia típico (horários e quantidades)</div><textarea class="fi" name="recordatorio" style="min-height:120px;" placeholder="07h — 2 ovos, pão integral, café&#10;12h — Arroz, feijão, frango, salada&#10;19h — Omelete com legumes&#10;…"></textarea></div>
+        <div class="field"><div class="f-lbl">Disponibilidade alimentar durante o dia</div><textarea class="fi" name="disponibilidade_alim" placeholder="Ex: Geladeira no trabalho, posso levar marmitas. Ou Como fora todos os dias."></textarea></div>
+        <div class="field"><div class="f-lbl">Alergias, intolerâncias ou alimentos que não consome</div><textarea class="fi" name="alergias" placeholder="Ex: Intolerante à lactose, não como peixe, vegetariana…"></textarea></div>
+        <div class="field"><div class="f-lbl">Relação com a comida e histórico de dieta</div><textarea class="fi" name="rel_comida" placeholder="Já fez dieta restritiva? Por quanto tempo? Resultado? Como é sua relação com comida hoje?"></textarea></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-lbl">Saúde intestinal</div>
+      <div class="card-body">
+        <div class="field"><div class="f-lbl">Frequência e consistência das fezes</div>
+          <div class="choices col" data-group="fezes">
+            <div class="ch" data-value="Preso — fezes duras ou bolinhas" data-theme="red">Preso — fezes duras ou bolinhas</div>
+            <div class="ch" data-value="Irregular — formato com rachaduras" data-theme="amber">Irregular — formato com rachaduras</div>
+            <div class="ch" data-value="Normal — uniforme e fácil ✓" data-theme="green">Normal — uniforme e fácil ✓</div>
+            <div class="ch" data-value="Solto / pastoso">Solto / pastoso</div>
+          </div>
+        </div>
+        <div class="field"><div class="f-lbl">Refluxo, gastrite, gases, azia</div><textarea class="fi" name="gastrico" placeholder="Ex: Gastrite leve, azia após refeições grandes. Ou Nenhum."></textarea></div>
+        <div class="field"><div class="f-lbl">Observações adicionais sobre intestino</div><input class="fi" type="text" name="obs_fezes" placeholder="Ex: 1x ao dia, sem dor. Gases ao incluir leguminosas."></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-head"><span class="sec-num">08</span><span class="sec-title">Descanso & recuperação</span></div>
+    <div class="card">
+      <div class="card-body">
+        <div class="fi-row">
+          <div class="field"><div class="f-lbl">Tempo para pegar no sono</div><input class="fi" type="text" name="tempo_sono" placeholder="Ex: ~20 minutos"></div>
+          <div class="field"><div class="f-lbl">Pico de cansaço durante o dia</div><input class="fi" type="text" name="pico_cansaco" placeholder="Ex: Por volta das 15h"></div>
+        </div>
+        <div class="field"><div class="f-lbl">Acorda descansado? (sem precisar de café)</div>
+          <div class="choices g3" data-group="acorda_descansado">
+            <div class="ch" data-value="Sim" data-theme="green">Sim</div>
+            <div class="ch" data-value="Às vezes">Às vezes</div>
+            <div class="ch" data-value="Não" data-theme="red">Não</div>
+          </div>
+        </div>
+        <div class="field"><div class="f-lbl">Acorda durante a noite?</div><input class="fi" type="text" name="acorda_noite" placeholder="Ex: 1–2 vezes para usar o banheiro. Ou Não."></div>
+        <div class="field"><div class="f-lbl">Respiração e sintomas noturnos</div><textarea class="fi" name="sintomas_noturnos" placeholder="Respira pelo nariz ou boca? Boca seca, dor de cabeça, coração acelerado?"></textarea></div>
+        <div class="field"><div class="f-lbl">HRV / VFC média semanal (se tiver relógio)</div><input class="fi" type="text" name="hrv" placeholder="Ex: 52ms (Garmin). Ou Não tenho relógio."></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-head"><span class="sec-num">09</span><span class="sec-title">Como você se sente</span></div>
+    <div class="nota" style="margin-bottom:4px;">Avalie de 0 (péssimo) a 10 (excelente) como tem se sentido nos últimos 30 dias.</div>
+    <div class="card">
+      <div class="card-body" id="slidersWrap">
+        </div>
+    </div>
+    <div class="card">
+      <div class="card-lbl">Observações adicionais</div>
+      <div class="card-body">
+        <textarea class="fi" name="obs_neuro" placeholder="Ex: Dificuldade de foco após almoço, melhora com café. Memória mais fraca desde que mudei o anticoncepcional."></textarea>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec hidden" id="secFem">
+    <div class="sec-head"><span class="sec-num">10</span><span class="sec-title">Saúde Feminina</span></div>
+    <div class="card">
+      <div class="card-lbl">Ciclo menstrual</div>
+      <div class="card-body">
+        <div class="field"><div class="f-lbl">Regularidade</div>
+          <div class="choices g3" data-group="ciclo_regular">
+            <div class="ch" data-value="Regular" data-theme="green">Regular</div>
+            <div class="ch" data-value="Irregular" data-theme="amber">Irregular</div>
+            <div class="ch" data-value="Ausente / N/A">Ausente / N/A</div>
+          </div>
+        </div>
+        <div class="field"><div class="f-lbl">Sintomas de TPM</div>
+          <div class="checks" id="tpmChecks">
+            <div class="ck" data-val="Inchaço / retenção"><div class="ck-box">✓</div>Inchaço / retenção</div>
+            <div class="ck" data-val="Oscilação de humor"><div class="ck-box">✓</div>Oscilação de humor</div>
+            <div class="ck" data-val="Cólicas intensas"><div class="ck-box">✓</div>Cólicas intensas</div>
+            <div class="ck" data-val="Fadiga"><div class="ck-box">✓</div>Fadiga</div>
+            <div class="ck" data-val="Ansiedade"><div class="ck-box">✓</div>Ansiedade</div>
+            <div class="ck" data-val="Insônia"><div class="ck-box">✓</div>Insônia</div>
+            <div class="ck" data-val="Sem sintomas relevantes" data-solo="1"><div class="ck-box">✓</div>Sem sintomas relevantes</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-lbl">Queda capilar feminina</div>
+      <div class="card-body">
+        <div class="field"><div class="f-lbl">Onde percebe mais queda?</div>
+          <div class="checks" id="quedaFemChecks">
+            <div class="ck" data-val="Topo da cabeça"><div class="ck-box">✓</div>Topo da cabeça</div>
+            <div class="ck" data-val="Franja / frontal"><div class="ck-box">✓</div>Franja / frontal</div>
+            <div class="ck" data-val="Têmporas"><div class="ck-box">✓</div>Têmporas</div>
+            <div class="ck" data-val="Difuso geral"><div class="ck-box">✓</div>Difuso geral</div>
+            <div class="ck" data-val="Sem queda percebida" data-solo="1"><div class="ck-box">✓</div>Sem queda percebida</div>
+          </div>
+        </div>
+        <div class="field"><div class="f-lbl">Histórico familiar (mãe / avó)</div>
+          <div class="choices g3" data-group="hist_capilar_f">
+            <div class="ch" data-value="Cabelo cheio" data-theme="green">Cabelo cheio</div>
+            <div class="ch" data-value="Cabelo fino / ralo">Cabelo fino / ralo</div>
+            <div class="ch" data-value="Não sei">Não sei</div>
+          </div>
+        </div>
+        <div class="field"><div class="f-lbl">Fator desencadeante suspeito</div><input class="fi" type="text" name="queda_causa_f" placeholder="Ex: pós-parto, stress, mudança hormonal, anemia…"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec hidden" id="secMasc">
+    <div class="sec-head"><span class="sec-num">10</span><span class="sec-title">Saúde Masculina</span></div>
+    <div class="card">
+      <div class="card-lbl">Marcadores andrógenos</div>
+      <div class="card-body">
+        <div class="field"><div class="f-lbl">Ereção matinal (qualidade)</div>
+          <div class="choices" data-group="erecao_matinal">
+            <div class="ch" data-value="Forte" data-theme="green">Forte</div>
+            <div class="ch" data-value="Normal">Normal</div>
+            <div class="ch" data-value="Fraca" data-theme="amber">Fraca</div>
+            <div class="ch" data-value="Ausente" data-theme="red">Ausente</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-lbl">Queda capilar masculina</div>
+      <div class="card-body">
+        <div class="field"><div class="f-lbl">Padrão atual (Hamilton-Norwood simplificado)</div>
+          <div class="choices col" data-group="queda_masc">
+            <div class="ch" data-value="Sem queda perceptível" data-theme="green">Sem queda perceptível</div>
+            <div class="ch" data-value="Entradas — recuo da linha frontal">Entradas — recuo da linha frontal</div>
+            <div class="ch" data-value="Vértex — coroa rarefeita">Vértex — coroa rarefeita</div>
+            <div class="ch" data-value="Fronto-temporal — entradas + vértex">Fronto-temporal — entradas + vértex</div>
+            <div class="ch" data-value="Calvície avançada — área extensa" data-theme="red">Calvície avançada — área extensa</div>
+          </div>
+        </div>
+        <div class="field"><div class="f-lbl">Grau de progressão percebida</div>
+          <div class="choices g3" data-group="queda_masc_grau">
+            <div class="ch" data-value="Estável">Estável</div>
+            <div class="ch" data-value="Progressão lenta" data-theme="amber">Progressão lenta</div>
+            <div class="ch" data-value="Progressão rápida" data-theme="red">Progressão rápida</div>
+          </div>
+        </div>
+        <div class="field"><div class="f-lbl">Histórico familiar paterno (pai)</div>
+          <div class="choices g3" data-group="hist_pai">
+            <div class="ch" data-value="Cabelo cheio" data-theme="green">Cabelo cheio</div>
+            <div class="ch" data-value="Calvo parcial">Calvo parcial</div>
+            <div class="ch" data-value="Calvo total">Calvo total</div>
+          </div>
+        </div>
+        <div class="field"><div class="f-lbl">Histórico materno (avô materno)</div>
+          <div class="choices g3" data-group="hist_avo_mat">
+            <div class="ch" data-value="Cabelo cheio" data-theme="green">Cabelo cheio</div>
+            <div class="ch" data-value="Calvo parcial">Calvo parcial</div>
+            <div class="ch" data-value="Calvo total">Calvo total</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-head"><span class="sec-num">11</span><span class="sec-title">Saúde & histórico clínico</span></div>
+    <div class="card">
+      <div class="card-body">
+        <div class="field">
+          <div class="f-lbl">Temperatura corporal ao acordar (Tireoide)</div>
+          <div class="nota">🌡 Ao acordar, ainda deitado, meça a temperatura. Não se mova antes. Se dormiu com ar-condicionado, desligue e aguarde 5 min. Repita por 3–5 dias e anote a média.</div>
+          <input class="fi" type="text" name="temperatura" placeholder="Ex: 36.4 °C (média de 5 dias)">
+        </div>
+        <div class="field"><div class="f-lbl">Doenças pré-existentes e histórico familiar</div><textarea class="fi" name="doencas" placeholder="Ex: Hipertensão no pai, hipotireoidismo diagnosticado há 2 anos. Ou Nenhuma."></textarea></div>
+        <div class="field"><div class="f-lbl">Mudanças negativas nos últimos 3 anos</div><textarea class="fi" name="mudancas_neg" placeholder="Ex: Queda de imunidade, intolerâncias novas, alterações de BPM, memória, queda capilar…"></textarea></div>
+        <div class="field"><div class="f-lbl">Cirurgias realizadas</div><input class="fi" type="text" name="cirurgias" placeholder="Ex: Apendicite 2018. Ou Nenhuma."></div>
+        <div class="fi-row">
+          <div class="field"><div class="f-lbl">Tratamento de canal</div><input class="fi" type="text" name="canal" placeholder="Ex: 2 canais, o mais recente há 4 anos"></div>
+          <div class="field"><div class="f-lbl">Metal / substância implantada</div><input class="fi" type="text" name="implantes" placeholder="Ex: Placa no joelho, DIU de cobre. Ou Nenhum."></div>
+        </div>
+        <div class="field"><div class="f-lbl">Observações finais importantes</div><textarea class="fi" name="obs_finais" placeholder="Qualquer informação que julgue relevante e que não foi perguntada acima…"></textarea></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="submit-wrap">
+    <button class="btn-submit" id="btnSubmit" onclick="submitForm()">Enviar Anamnese</button>
+  </div>
+
+</div><div class="toast" id="toast"></div>
+
+<script>
+/* ── CONFIG ── */
+const ACCESS_CODE = 'RENNAN2025';   // ← altere para controlar acesso
+const W3F_KEY     = 'ab9159c3-f1e5-462a-aec7-5632170454e5';
+const STORE       = 'anamnese_v1';
+
+const SLIDERS = [
+  {name:'Motivação',           key:'neuro_motivacao'},
+  {name:'Concentração',        key:'neuro_concentracao'},
+  {name:'Memória de curto prazo', key:'neuro_memoria_curto'},
+  {name:'Facilidade de aprendizado', key:'neuro_aprendizado'},
+  {name:'Iniciativa sexual',   key:'neuro_libido'},
+  {name:'Prazer em coisas simples', key:'neuro_prazer'},
+  {name:'Sociabilidade',       key:'neuro_social'},
+  {name:'Fluência verbal',     key:'neuro_fluencia'},
+];
+
+const state = { groups:{}, tpm:[], quedaF:[] };
+let gender = '';
+
+/* ── GATE ── */
+function checkGate() {
+  const v = document.getElementById('gateInput').value.trim().toUpperCase();
+  if (v === ACCESS_CODE.toUpperCase()) {
+    document.getElementById('gate').classList.add('hidden');
+    sessionStorage.setItem('ana_auth','1');
+  } else {
+    document.getElementById('gateErr').textContent = 'Código incorreto. Verifique com seu consultor.';
+    document.getElementById('gateInput').value = '';
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  if (sessionStorage.getItem('ana_auth') === '1') {
+    document.getElementById('gate').classList.add('hidden');
+  }
+  buildSliders();
+  bindChoices();
+  bindCheckboxes();
+  bindInputs();
+  loadDraft();
+  updateProgress();
+});
+
+/* ── GENDER ── */
+function setGender(g) {
+  gender = g;
+  document.getElementById('gBtnF').className = 'gender-btn' + (g==='F'?' sel-f':'');
+  document.getElementById('gBtnM').className = 'gender-btn' + (g==='M'?' sel-m':'');
+  document.getElementById('secFem').classList.toggle('hidden', g !== 'F');
+  document.getElementById('secMasc').classList.toggle('hidden', g !== 'M');
+  computeStats();
+  saveDraft();
+}
+
+/* ── SLIDERS ── */
+function buildSliders() {
+  const wrap = document.getElementById('slidersWrap');
+  wrap.innerHTML = SLIDERS.map(s => `
+    <div class="slider-wrap">
+      <div class="f-lbl">${s.name}</div>
+      <div class="slider-row">
+        <input type="range" name="${s.key}" min="0" max="10" value="5"
+          oninput="this.nextElementSibling.textContent=this.value;saveDraft()">
+        <div class="slider-val">5</div>
+      </div>
+      <div class="slider-ticks">${[0,1,2,3,4,5,6,7,8,9,10].map(n=>`<span>${n}</span>`).join('')}</div>
+    </div>
+  `).join('');
+}
+
+/* ── CHOICE BUTTONS ── */
+function bindChoices() {
+  document.querySelectorAll('[data-group]').forEach(wrap => {
+    const grp = wrap.dataset.group;
+    wrap.querySelectorAll('.ch').forEach(btn => {
+      btn.addEventListener('click', () => {
+        wrap.querySelectorAll('.ch').forEach(b =>
+          b.classList.remove('sel','sel-green','sel-amber','sel-red'));
+        const t = btn.dataset.theme;
+        btn.classList.add(t==='green'?'sel-green':t==='amber'?'sel-amber':t==='red'?'sel-red':'sel');
+        state.groups[grp] = btn.dataset.value;
+        if (grp==='tem_academia') {
+          const eq = document.getElementById('equipField');
+          if (eq) eq.classList.toggle('hidden', btn.dataset.value!=='Home gym');
+        }
+        saveDraft(); updateProgress();
+      });
+    });
+  });
+}
+
+function setChoice(grp, val) {
+  const wrap = document.querySelector(`[data-group="${grp}"]`);
+  if (!wrap) return;
+  wrap.querySelectorAll('.ch').forEach(b => {
+    b.classList.remove('sel','sel-green','sel-amber','sel-red');
+    if (b.dataset.value === val) {
+      const t = b.dataset.theme;
+      b.classList.add(t==='green'?'sel-green':t==='amber'?'sel-amber':t==='red'?'sel-red':'sel');
+      state.groups[grp] = val;
+    }
+  });
+}
+
+/* ── CHECKBOXES ── */
+function bindCheckboxes() {
+  bindCkGroup('tpmChecks', state, 'tpm');
+  bindCkGroup('quedaFemChecks', state, 'quedaF');
+}
+
+function bindCkGroup(id, st, key) {
+  const wrap = document.getElementById(id);
+  if (!wrap) return;
+  wrap.querySelectorAll('.ck').forEach(ck => {
+    ck.addEventListener('click', () => {
+      const val = ck.dataset.val;
+      const isSolo = ck.dataset.solo === '1';
+      if (isSolo) {
+        wrap.querySelectorAll('.ck').forEach(c => c.classList.remove('checked'));
+        st[key] = [];
+      } else {
+        const soloEl = wrap.querySelector('.ck[data-solo="1"]');
+        if (soloEl) soloEl.classList.remove('checked');
+        st[key] = st[key].filter(v => v !== val && v !== (soloEl?.dataset.val));
+      }
+      const wasChecked = ck.classList.contains('checked');
+      ck.classList.toggle('checked', !wasChecked);
+      if (!wasChecked && !isSolo) { if (!st[key].includes(val)) st[key].push(val); }
+      else st[key] = st[key].filter(v => v !== val);
+      saveDraft(); updateProgress();
+    });
+  });
+}
+
+/* ── RCQ / ESTIMATIVA GORDURA ── */
+function computeStats() {
+  const h  = parseFloat(document.querySelector('[name="altura"]')?.value);
+  const c  = parseFloat(document.querySelector('[name="cintura"]')?.value);
+  const q  = parseFloat(document.querySelector('[name="quadril"]')?.value);
+  const gnd = gender||'F';
+
+  /* RCQ */
+  if (c>0 && q>0) {
+    const rcq = (c/q).toFixed(2);
+    document.getElementById('rcqVal').textContent = rcq;
+    const cutRCQ = gnd==='F'?0.85:0.90;
+    const riskRCQ = rcq>=cutRCQ?'Risco elevado':'Normal';
+    document.getElementById('rcqStatus').textContent = riskRCQ;
+    document.getElementById('rcqStatus').style.color = rcq>=cutRCQ?'#f87171':'#3DC97A';
+    document.getElementById('ccRCQ').classList.add('active');
+  } else {
+    document.getElementById('rcqVal').textContent = '—';
+    document.getElementById('rcqStatus').textContent = '';
+  }
+
+  /* Estimativa % Gordura (RFM) */
+  const bfField = document.getElementById('f_bf_est');
+  if (bfField && h > 0 && c > 0 && gnd) {
+    const rfm = gnd === 'M' ? 64 - (20 * (h / c)) : 76 - (20 * (h / c));
+    const bf_percent = Math.max(2, rfm);
+    bfField.value = `~${bf_percent.toFixed(1)}%`;
+  } else if (bfField) {
+    bfField.value = '';
+  }
+
+  const acadVal = state.groups['tem_academia']||'';
+  const eqField = document.getElementById('equipField');
+  if (eqField) eqField.classList.toggle('hidden', acadVal!=='Home gym');
+}
+
+/* ── PROGRESS ── */
+function updateProgress() {
+  const inputs = document.querySelectorAll('.fi:not([readonly]),[name]');
+  let filled=0, total=0;
+  const counted = new Set();
+  inputs.forEach(el => {
+    if (!el.name || el.closest('.hidden')) return;
+    if (el.type==='range') { total++; filled++; return; }
+    if (counted.has(el.name)) return;
+    counted.add(el.name);
+    total++;
+    if (el.value && el.value.trim()) filled++;
+  });
+  Object.keys(state.groups).forEach(k => {
+    const wrap = document.querySelector(`[data-group="${k}"]`);
+    if (wrap && !wrap.closest('.hidden')) { total++; filled++; }
+  });
+  const pct = total>0 ? Math.round(filled/total*100) : 0;
+  document.getElementById('progFill').style.width = pct+'%';
+  document.getElementById('progPct').textContent = pct+'%';
+}
+
+/* ── INPUT BIND ── */
+function bindInputs() {
+  document.querySelectorAll('.fi').forEach(el => {
+    el.addEventListener('input', () => { saveDraft(); updateProgress(); computeStats(); });
+  });
+}
+
+/* ── DRAFT ── */
+let _saveTimer = null;
+function saveDraft() {
+  const d = {};
+  document.querySelectorAll('[name]').forEach(el => {
+    if (el.name) d[el.name] = el.value;
+  });
+  d._gender = gender;
+  d._groups = {...state.groups};
+  d._tpm    = [...state.tpm];
+  d._quedaF = [...state.quedaF];
+  localStorage.setItem(STORE, JSON.stringify(d));
+  clearTimeout(_saveTimer);
+  _saveTimer = setTimeout(() => {
+    const prog = document.getElementById('progPct')?.textContent||'';
+    if (prog && prog !== '0%') toast('Dados salvos automaticamente — '+prog+' preenchido','',1800);
+  }, 2000);
+}
+
+function loadDraft() {
+  try {
+    const raw = localStorage.getItem(STORE);
+    if (!raw) return;
+    const d = JSON.parse(raw);
+    document.querySelectorAll('[name]').forEach(el => {
+      if (el.name && d[el.name] !== undefined) el.value = d[el.name];
+    });
+    if (d._gender) setGender(d._gender);
+    if (d._groups) Object.entries(d._groups).forEach(([g,v]) => setChoice(g,v));
+    if (d._tpm) {
+      state.tpm = d._tpm;
+      d._tpm.forEach(v => {
+        const el = document.querySelector(`#tpmChecks .ck[data-val="${v}"]`);
+        if (el) el.classList.add('checked');
+      });
+    }
+    if (d._quedaF) {
+      state.quedaF = d._quedaF;
+      d._quedaF.forEach(v => {
+        const el = document.querySelector(`#quedaFemChecks .ck[data-val="${v}"]`);
+        if (el) el.classList.add('checked');
+      });
+    }
+    document.querySelectorAll('input[type="range"]').forEach(r => {
+      const o = r.nextElementSibling;
+      if (o) o.textContent = r.value;
+    });
+    computeStats(); updateProgress();
+    toast('Rascunho restaurado.','');
+  } catch(e){}
+}
+
+function clearAll() {
+  if (!confirm('Limpar todos os dados?')) return;
+  localStorage.removeItem(STORE);
+  document.querySelectorAll('[name]').forEach(el => el.value = '');
+  document.querySelectorAll('.ch').forEach(b =>
+    b.classList.remove('sel','sel-green','sel-amber','sel-red'));
+  document.querySelectorAll('.ck').forEach(c => c.classList.remove('checked'));
+  document.querySelectorAll('input[type="range"]').forEach(r => {
+    r.value=5; const o=r.nextElementSibling; if(o) o.textContent='5';
+  });
+  Object.keys(state.groups).forEach(k=>delete state.groups[k]);
+  state.tpm=[]; state.quedaF=[];
+  gender='';
+  document.getElementById('gBtnF').className='gender-btn';
+  document.getElementById('gBtnM').className='gender-btn';
+  document.getElementById('secFem').classList.add('hidden');
+  document.getElementById('secMasc').classList.add('hidden');
+  computeStats(); updateProgress();
+  toast('Formulário limpo.','');
+}
+
+/* ── BUILD EMAIL ── */
+function buildEmail(d) {
+  const v = k => d[k]||'—';
+  const gr = k => state.groups[k]||'—';
+  const sl = k => d[k]||'5';
+
+  return `ANAMNESE — PROTOCOLO PERSONALIZADO
+=====================================
+Gênero  : ${gender==='F'?'Feminino':gender==='M'?'Masculino':'Não informado'}
+Nome    : ${v('nome')}
+WhatsApp: ${v('whatsapp')}
+Email   : ${v('email')}
+Cidade  : ${v('cidade')}
+Nasc.   : ${v('data_nasc')}
+
+MEDIDAS
+-------
+Altura         : ${v('altura')} cm
+Peso           : ${v('peso')} kg
+Cintura        : ${v('cintura')} cm
+Quadril        : ${v('quadril')} cm
+Braço D/E      : ${v('braco_d')} / ${v('braco_e')} cm
+Coxa D/E       : ${v('coxa_d')} / ${v('coxa_e')} cm
+Panturrilha D/E: ${v('pant_d')} / ${v('pant_e')} cm
+Histórico peso : ${v('hist_peso')}
+Est. Gordura   : ${v('bf_estimado')}
+
+OBJETIVOS
+---------
+Peso alvo      : ${v('meta_peso')} kg
+Prazo          : ${v('meta_prazo')} meses
+Prioridade     : ${gr('meta_prioridade')}
+Objetivos      : ${v('objetivos')}
+
+ROTINA
+------
+Profissão/horário : ${v('profissao')}
+Estudos           : ${v('estudos')}
+Dorme / Acorda    : ${v('horario_dormir')} / ${v('horario_acordar')}
+
+TREINAMENTO
+-----------
+Anos treinando    : ${v('anos_treino')}
+Nível             : ${gr('nivel_treino')}
+Atividades atuais : ${v('atividades')}
+Horários          : ${v('horarios_treino')}
+Dias/semana       : ${v('dias_treino')}
+Duração sessão    : ${v('duracao_sessao')}
+Academia          : ${gr('tem_academia')}
+Equipamentos      : ${v('equipamentos')}
+Sem descanso há   : ${v('descanso_treino')}
+Periodiza         : ${gr('periodiza')}
+Estagnação        : ${gr('estagnacao')}
+Pump              : ${gr('pump')}
+Lesões            : ${v('lesoes')}
+
+SUBSTÂNCIAS
+-----------
+Remédios       : ${v('remedios')}
+Drogas         : ${v('drogas')}
+Hormônios      : ${v('hormonios')}
+Estimulantes   : ${v('estimulantes')}
+Suplementação  : ${v('suplementacao')}
+
+DIETA E TGI
+-----------
+Hidratação     : ${gr('hidratacao')}
+Recordatório   : ${v('recordatorio')}
+Disponibilidade: ${v('disponibilidade_alim')}
+Alergias       : ${v('alergias')}
+Rel. c/ comida : ${v('rel_comida')}
+Fezes          : ${gr('fezes')}
+Gástrico       : ${v('gastrico')}
+Obs. intestino : ${v('obs_fezes')}
+
+SONO
+----
+Tempo adormecer: ${v('tempo_sono')}
+Pico cansaço   : ${v('pico_cansaco')}
+Acorda desc.   : ${gr('acorda_descansado')}
+Acorda noite   : ${v('acorda_noite')}
+Sintomas noc.  : ${v('sintomas_noturnos')}
+HRV            : ${v('hrv')}
+
+NEUROLÓGICO (0–10)
+------------------
+Motivação      : ${sl('neuro_motivacao')}
+Concentração   : ${sl('neuro_concentracao')}
+Memória c.p.   : ${sl('neuro_memoria_curto')}
+Aprendizado    : ${sl('neuro_aprendizado')}
+Libido/sexual  : ${sl('neuro_libido')}
+Prazer/simples : ${sl('neuro_prazer')}
+Sociabilidade  : ${sl('neuro_social')}
+Fluência verbal: ${sl('neuro_fluencia')}
+Obs. neuro     : ${v('obs_neuro')}
+${gender==='F' ? `
+SAÚDE FEMININA
+--------------
+Ciclo menstrual  : ${gr('ciclo_regular')}
+Sintomas TPM     : ${state.tpm.length?state.tpm.join(', '):'—'}
+Queda capilar    : ${state.quedaF.length?state.quedaF.join(', '):'—'}
+Hist. capilar    : ${gr('hist_capilar_f')}
+Causa queda      : ${v('queda_causa_f')}
+`:gender==='M'?`
+SAÚDE MASCULINA
+---------------
+Ereção matinal   : ${gr('erecao_matinal')}
+Queda capilar    : ${gr('queda_masc')}
+Progressão queda : ${gr('queda_masc_grau')}
+Hist. pai        : ${gr('hist_pai')}
+Hist. avô mat.   : ${gr('hist_avo_mat')}
+`:``}
+
+HISTÓRICO CLÍNICO
+-----------------
+Temperatura basal: ${v('temperatura')}
+Doenças          : ${v('doencas')}
+Mudanças negativas: ${v('mudancas_neg')}
+Cirurgias        : ${v('cirurgias')}
+Canal dentário   : ${v('canal')}
+Implantes        : ${v('implantes')}
+Obs. finais      : ${v('obs_finais')}
+`.trim();
+}
+
+/* ── SUBMIT ── */
+async function submitForm() {
+  const d = {};
+  document.querySelectorAll('[name]').forEach(el => { if(el.name) d[el.name]=el.value; });
+  if (!d.nome||!d.nome.trim()) { toast('Digite seu nome.','err'); return; }
+  if (!d.email||!d.email.includes('@')) { toast('Digite um e-mail válido.','err'); return; }
+
+  const btn = document.getElementById('btnSubmit');
+  btn.disabled=true; btn.textContent='Enviando…';
+
+  const fetchP = fetch('https://api.web3forms.com/submit',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','Accept':'application/json'},
+    body: JSON.stringify({
+      access_key: W3F_KEY,
+      subject:    `Anamnese · ${d.nome}`,
+      from_name:  d.nome,
+      from_email: d.email,
+      replyto:    d.email,
+      message:    buildEmail(d),
+      botcheck:   ''
+    })
+  });
+  const timeoutP = new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),15000));
+
+  try {
+    const res = await Promise.race([fetchP,timeoutP]);
+    const j   = await res.json();
+    if (j.success) {
+      document.getElementById('sucNome').textContent = d.nome.split(' ')[0];
+      document.getElementById('successScreen').classList.add('show');
+      localStorage.removeItem(STORE);
+    } else { throw new Error(j.message); }
+  } catch(e) {
+    console.error(e);
+    const mailto = `mailto:rennanjgoncalves@gmail.com?subject=${encodeURIComponent('Anamnese · '+d.nome)}&body=${encodeURIComponent(buildEmail(d))}`;
+    if (confirm('Erro no envio automático. Deseja enviar por e-mail?')) window.location.href=mailto;
+    btn.disabled=false; btn.textContent='Enviar Anamnese';
+  }
+}
+
+/* ── TOAST ── */
+function toast(msg,type,dur=2800){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className='toast'+(type?' '+type:'');
+  t.classList.add('show');
+  clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),dur);
+}
+</script>
+</body>
+</html>
+
+```
