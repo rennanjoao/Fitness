@@ -1,0 +1,1438 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Portal da Consultoria</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ════════════════════════════════════════
+   TOKENS E RESET
+════════════════════════════════════════ */
+:root{
+  --bg:#0B0B0C;--surf:#151517;--card:#1C1C1F;--graf:#232326;
+  --border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.11);
+  --crimson:#B11226;--crimson-h:#D11830;--crimson-d:#7A0D1B;
+  --crimson-g:rgba(177,18,38,0.12);
+  --green:#3DC97A;--green-g:rgba(61,201,122,0.10);
+  --amber:#D4900A;--amber-g:rgba(212,144,10,0.10);
+  --text:#F5F5F5;--sub:#8B8B92;--muted:#55555C;
+  --r:16px;--r-sm:11px;--r-xs:8px;--nav:76px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html{scroll-behavior:smooth;}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100dvh;-webkit-font-smoothing:antialiased;}
+
+/* ════════════════════════════════════════
+   SISTEMA DE MÓDULOS E GATE
+════════════════════════════════════════ */
+.module { display: none; }
+.module.active { display: block; animation: fadeIn .4s ease; }
+@keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+
+#gate{
+  position:fixed;inset:0;z-index:500;background:var(--bg);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:32px;gap:18px;animation:fadeIn .35s ease;
+}
+.gate-ring{width:72px;height:72px;border-radius:50%;border:1px solid var(--crimson);background:var(--crimson-g);display:flex;align-items:center;justify-content:center;font-size:1.8rem;}
+.gate-brand{font-family:'Cormorant Garamond',serif;font-weight:700;font-size:1.1rem;letter-spacing:.14em;text-transform:uppercase;color:var(--crimson);}
+.gate-sub{font-size:.82rem;color:var(--sub);text-align:center;max-width:260px;line-height:1.6;}
+.gate-wrap{display:flex;flex-direction:column;gap:10px;width:100%;max-width:300px;}
+.gate-lbl{font-size:.65rem;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);}
+.gate-fi{padding:14px 16px;background:var(--surf);border:1px solid var(--border2);border-radius:var(--r-sm);color:var(--text);font-family:'Inter',sans-serif;font-size:1rem;outline:none;width:100%;text-align:center;letter-spacing:0.2em;transition:border-color .2s;-webkit-appearance:none;}
+.gate-fi:focus{border-color:rgba(177,18,38,.4);}
+.gate-btn{width:100%;padding:15px;background:var(--crimson);color:#fff;border:none;border-radius:var(--r-sm);font-family:'Cormorant Garamond',serif;font-size:1rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:all .2s;}
+.gate-btn:hover{background:var(--crimson-h);}
+.gate-err{font-size:.78rem;color:#f87171;text-align:center;min-height:1.2em;}
+
+/* ════════════════════════════════════════
+   COMPONENTES GERAIS
+════════════════════════════════════════ */
+.topbar{position:sticky;top:0;z-index:60;height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 22px;background:rgba(11,11,12,0.88);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);}
+.tb-brand{font-family:'Cormorant Garamond',serif;font-weight:700;font-size:1rem;letter-spacing:.12em;text-transform:uppercase;color:var(--crimson);}
+.tb-btn{font-size:.68rem;font-weight:500;color:var(--muted);cursor:pointer;padding:6px 12px;border-radius:99px;border:1px solid var(--border2);background:transparent;transition:all .2s;}
+.tb-btn:hover{color:var(--sub);border-color:var(--muted);}
+
+.prog-wrap{max-width:660px;margin:0 auto;padding:18px 22px 0;}
+.prog-meta{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;}
+.prog-label{font-size:.65rem;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);}
+.prog-pct{font-family:'Cormorant Garamond',serif;font-size:.85rem;font-weight:600;color:var(--crimson);}
+.prog-track{height:2px;background:var(--graf);border-radius:99px;position:relative;}
+.prog-fill{height:2px;background:var(--crimson);border-radius:99px;transition:width .4s ease;width:0%;}
+
+.hero{max-width:660px;margin:20px auto 0;padding:0 22px;}
+.hero-eyebrow{font-size:.6rem;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:var(--crimson);margin-bottom:8px;}
+.hero-title{font-family:'Cormorant Garamond',serif;font-weight:700;font-size:2rem;line-height:1.1;margin-bottom:6px;}
+.hero-sub{font-size:.84rem;color:var(--sub);line-height:1.6;}
+
+.main{max-width:660px;margin:24px auto 0;padding:0 22px 60px;}
+.main-chk{padding-bottom:calc(var(--nav) + 32px);}
+
+.sec{display:flex;flex-direction:column;gap:14px;margin-bottom:24px;}
+.sec.hidden{display:none;}
+.sec-head{display:flex;align-items:center;gap:10px;padding:4px 0 2px;}
+.sec-num{font-family:monospace;font-size:.62rem;color:var(--crimson);border:1px solid var(--crimson-d);border-radius:4px;padding:2px 7px;}
+.sec-title{font-family:'Cormorant Garamond',serif;font-weight:700;font-size:1.2rem;}
+
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;}
+.card-lbl{font-size:.6rem;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);padding:14px 18px 0;}
+.card-body{padding:14px 18px 18px;display:flex;flex-direction:column;gap:14px;}
+
+.field{display:flex;flex-direction:column;gap:6px;}
+.f-lbl{font-size:.68rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--sub);}
+.fi{padding:12px 14px;background:var(--surf);border:1px solid var(--border2);border-radius:var(--r-sm);color:var(--text);font-family:'Inter',sans-serif;font-size:.92rem;outline:none;width:100%;transition:border-color .2s;}
+.fi:focus{border-color:rgba(177,18,38,.45);}
+textarea.fi{resize:none;min-height:80px;}
+.fi-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.fi-row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+
+.choices{display:flex;flex-wrap:wrap;gap:8px;}
+.choices.col{flex-direction:column;}
+.choices.g2{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.choices.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+.ch{padding:11px 14px;min-height:44px;background:var(--surf);border:1px solid var(--border2);border-radius:var(--r-sm);cursor:pointer;font-size:.86rem;font-weight:500;color:var(--sub);display:flex;align-items:center;justify-content:center;text-align:center;line-height:1.3;user-select:none;transition:all .15s;}
+.ch.sel{border-color:var(--crimson);background:var(--crimson-g);color:var(--text);}
+.ch.sel-green{border-color:var(--green);background:var(--green-g);color:var(--green);}
+.ch.sel-amber{border-color:var(--amber);background:var(--amber-g);color:var(--amber);}
+.ch.sel-red{border-color:#f87171;background:rgba(248,113,113,.1);color:#f87171;}
+
+.checks{display:flex;flex-wrap:wrap;gap:8px;}
+.checks.col{flex-direction:column;}
+.ck{padding:10px 14px;background:var(--surf);border:1px solid var(--border2);border-radius:var(--r-sm);cursor:pointer;font-size:.85rem;font-weight:500;color:var(--sub);display:flex;align-items:center;gap:8px;user-select:none;transition:all .15s;}
+.ck.checked{border-color:var(--crimson);background:var(--crimson-g);color:var(--text);}
+.ck-box{width:16px;height:16px;border-radius:4px;border:1.5px solid var(--border2);background:var(--surf);display:flex;align-items:center;justify-content:center;font-size:.7rem;color:transparent;}
+.ck.checked .ck-box{background:var(--crimson);border-color:var(--crimson);color:#fff;}
+
+.nota{display:flex;gap:10px;background:rgba(212,144,10,.05);border:1px solid rgba(212,144,10,.15);border-radius:var(--r-xs);padding:11px 14px;font-size:.78rem;color:rgba(212,144,10,.8);line-height:1.55;}
+
+.btn-submit{width:100%;padding:17px;background:var(--crimson);color:#fff;border:none;border-radius:var(--r-sm);font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:all .2s;}
+.btn-submit:disabled{opacity:.5;}
+
+.gender-wrap{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.gender-btn{padding:20px 16px;border-radius:var(--r-sm);border:1.5px solid var(--border2);background:var(--surf);cursor:pointer;text-align:center;font-family:'Cormorant Garamond',serif;font-size:1.2rem;font-weight:700;color:var(--sub);display:flex;flex-direction:column;align-items:center;gap:6px;}
+.gender-btn.sel-f{border-color:var(--crimson);background:var(--crimson-g);color:var(--text);}
+.gender-btn.sel-m{border-color:var(--blue);background:rgba(55,138,221,0.10);color:var(--text);}
+.slider-row{display:flex;align-items:center;gap:12px;}
+input[type="range"]{flex:1;height:4px;accent-color:var(--crimson);cursor:pointer;padding:0;}
+.slider-val{font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:700;color:var(--crimson);width:28px;text-align:center;}
+
+.step{display:none;}
+.step.active{display:flex;flex-direction:column;gap:18px;animation:fadeUp .3s ease;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+.med-row{display:flex;align-items:center;padding:13px 18px;gap:10px;border-bottom:1px solid var(--border);}
+.med-row:last-child{border-bottom:none;}
+.med-name{flex:1;font-size:.88rem;font-weight:500;}
+.med-in{width:68px;padding:9px 8px;background:var(--graf);border:1px solid var(--border2);border-radius:var(--r-xs);color:var(--text);text-align:center;outline:none;}
+.med-unit{font-size:.68rem;color:var(--muted);width:16px;}
+.delta{font-size:.72rem;font-weight:700;font-family:monospace;min-width:38px;text-align:right;}
+.d-p{color:var(--green);} .d-n{color:#f87171;} .d-0{color:var(--muted);}
+
+.col-item{border-bottom:1px solid var(--border);}
+.col-trigger{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;cursor:pointer;}
+.col-trigger-left{display:flex;align-items:center;gap:10px;}
+.col-check{width:20px;height:20px;border-radius:6px;border:1.5px solid var(--border2);background:var(--surf);display:flex;align-items:center;justify-content:center;color:transparent;}
+.col-item.checked .col-check{background:var(--crimson);border-color:var(--crimson);color:#fff;}
+.col-name{font-size:.9rem;color:var(--sub);}
+.col-item.checked .col-name{color:var(--text);}
+.col-body{max-height:0;overflow:hidden;transition:max-height .28s;}
+.col-item.open .col-body{max-height:200px;}
+.col-intensity{display:flex;gap:6px;padding:0 18px 14px;flex-wrap:wrap;}
+.int-btn{padding:7px 13px;font-size:.78rem;background:var(--graf);border:1px solid var(--border2);border-radius:99px;color:var(--muted);cursor:pointer;}
+.int-btn.sel{background:var(--crimson-g);border-color:var(--crimson);color:var(--text);}
+.grp-lbl{font-size:.6rem;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);padding:16px 18px 8px;border-top:1px solid var(--border);}
+.grp-lbl:first-child{border-top:none;padding-top:14px;}
+
+.nav{position:fixed;bottom:0;left:0;right:0;z-index:60;height:var(--nav);display:flex;align-items:center;gap:12px;padding:0 22px;background:rgba(11,11,12,.92);border-top:1px solid var(--border);}
+.btn-back{height:50px;padding:0 20px;background:transparent;border:1px solid var(--border2);border-radius:12px;color:var(--muted);cursor:pointer;}
+.btn-back:disabled{opacity:.2;cursor:default;}
+.btn-next{flex:1;height:50px;background:var(--crimson);color:#fff;border:none;border-radius:12px;font-family:'Cormorant Garamond',serif;font-size:1.05rem;font-weight:700;text-transform:uppercase;cursor:pointer;}
+.btn-next:disabled{opacity:.45;cursor:not-allowed;}
+.btn-next.final{background:linear-gradient(135deg,#B11226,#8B0D1C);}
+
+.success-screen{display:none;position:fixed;inset:0;z-index:900;background:var(--bg);flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:32px;}
+.success-screen.show{display:flex;animation:fadeIn .4s ease;}
+.suc-ring{width:88px;height:88px;border-radius:50%;border:1.5px solid var(--crimson);background:var(--crimson-g);display:flex;align-items:center;justify-content:center;font-size:2.2rem;}
+.suc-title{font-family:'Cormorant Garamond',serif;font-weight:700;font-size:1.9rem;margin-top:18px;}
+.suc-sub{font-size:.88rem;color:var(--sub);margin-top:8px; line-height:1.5;}
+.btn-novo{margin-top:20px;padding:13px 28px;background:var(--card);border:1px solid var(--border2);color:var(--text);border-radius:12px;cursor:pointer;}
+
+.toast{position:fixed;bottom:calc(var(--nav) + 14px);left:50%;transform:translateX(-50%) translateY(10px);background:var(--graf);border:1px solid var(--border2);color:var(--text);padding:10px 22px;border-radius:99px;font-size:.78rem;opacity:0;pointer-events:none;z-index:999;transition:all .3s;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.toast.err{border-color:var(--crimson);color:#f87171;}
+
+@media(max-width:420px){
+  .fi-row,.fi-row3,.gender-wrap{grid-template-columns:1fr;}
+  .choices.g3{grid-template-columns:1fr 1fr;}
+}
+</style>
+</head>
+<body>
+
+<div id="gate">
+  <div class="gate-ring">🔒</div>
+  <div class="gate-brand">Rennan João</div>
+  <div class="gate-sub">Digite o código de acesso fornecido pelo seu consultor.</div>
+  <div class="gate-wrap">
+    <div class="gate-lbl">Código de acesso</div>
+    <input class="gate-fi" type="password" id="gateInput" placeholder="••••••••" autocomplete="off" onkeydown="if(event.key==='Enter') Portal.checkGate()">
+    <button class="gate-btn" onclick="Portal.checkGate()">Acessar</button>
+    <div class="gate-err" id="gateErr"></div>
+  </div>
+</div>
+
+<div id="modAna" class="module">
+  <div id="ana_success" class="success-screen">
+    <div class="suc-ring">✓</div>
+    <div class="suc-title">Anamnese enviada</div>
+    <div class="suc-sub">Obrigada, <span id="ana_suc_nome" style="color:var(--crimson);font-weight:bold;"></span>. O Rennan recebeu seus dados.</div>
+    <button class="btn-novo" onclick="document.getElementById('ana_success').classList.remove('show')">Fechar</button>
+  </div>
+
+  <div class="topbar">
+    <div class="tb-brand">Anamnese</div>
+    <button class="tb-btn" onclick="Ana.clearAll()">Limpar</button>
+  </div>
+
+  <div class="prog-wrap">
+    <div class="prog-meta"><span class="prog-label">Preenchimento</span><span class="prog-pct" id="ana_prog_pct">0%</span></div>
+    <div class="prog-track"><div class="prog-fill" id="ana_prog_fill"></div></div>
+  </div>
+
+  <div class="hero">
+    <div class="hero-eyebrow">Protocolo Personalizado</div>
+    <div class="hero-title">Avaliação & Diagnóstico</div>
+    <div class="hero-sub">Preencha com atenção. Quanto mais preciso, mais personalizado será o seu protocolo.</div>
+  </div>
+
+  <div class="main">
+    <div class="sec">
+      <div class="sec-head"><span class="sec-num">01</span><span class="sec-title">Quem é você</span></div>
+      <div class="card">
+        <div class="card-lbl">Dados pessoais</div>
+        <div class="card-body">
+          <div class="fi-row">
+            <div class="field"><div class="f-lbl">Nome completo</div><input class="fi" type="text" name="nome" id="ana_nome" placeholder="Seu nome" autocomplete="name"></div>
+            <div class="field"><div class="f-lbl">Data de nascimento</div><input class="fi" type="date" name="data_nasc"></div>
+          </div>
+          <div class="fi-row">
+            <div class="field"><div class="f-lbl">WhatsApp</div><input class="fi" type="tel" name="whatsapp" placeholder="(11) 99999-9999"></div>
+            <div class="field"><div class="f-lbl">E-mail</div><input class="fi" type="email" name="email" placeholder="voce@email.com"></div>
+          </div>
+          <div class="field"><div class="f-lbl">Cidade / Estado</div><input class="fi" type="text" name="cidade" placeholder="Ex: São Paulo / SP"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-lbl">Gênero</div>
+        <div class="card-body">
+          <div class="gender-wrap">
+            <div class="gender-btn" id="ana_gBtnF" onclick="Ana.setGender('F')">♀ <span style="font-size:.72rem;">Feminino</span></div>
+            <div class="gender-btn" id="ana_gBtnM" onclick="Ana.setGender('M')">♂ <span style="font-size:.72rem;">Masculino</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head"><span class="sec-num">02</span><span class="sec-title">Seu ponto de partida</span></div>
+      <div class="card">
+        <div class="card-body">
+          <div class="fi-row3">
+            <div class="field"><div class="f-lbl">Altura (cm)</div><input class="fi" type="number" name="altura" placeholder="170" oninput="Ana.computeStats()"></div>
+            <div class="field"><div class="f-lbl">Peso (kg)</div><input class="fi" type="number" name="peso" step=".1" placeholder="70.0" oninput="Ana.computeStats()"></div>
+            <div class="field">
+              <div class="f-lbl">% Gordura Estimado</div>
+              <input class="fi" type="text" name="bf_estimado" id="ana_bf_est" readonly placeholder="Requer Alt. e Cintura" style="background:var(--bg); border-color:var(--border);">
+            </div>
+          </div>
+          <div class="fi-row">
+            <div class="field"><div class="f-lbl">Cintura no umbigo (cm)</div><input class="fi" type="number" name="cintura" step=".1" placeholder="80" oninput="Ana.computeStats()"></div>
+            <div class="field"><div class="f-lbl">Quadril (cm)</div><input class="fi" type="number" name="quadril" step=".1" placeholder="98"></div>
+          </div>
+          <div class="fi-row">
+            <div class="field"><div class="f-lbl">Braço D / E (cm)</div><div class="fi-row"><input class="fi" type="number" step=".1" name="braco_d" placeholder="Dir."><input class="fi" type="number" step=".1" name="braco_e" placeholder="Esq."></div></div>
+            <div class="field"><div class="f-lbl">Coxa D / E (cm)</div><div class="fi-row"><input class="fi" type="number" step=".1" name="coxa_d" placeholder="Dir."><input class="fi" type="number" step=".1" name="coxa_e" placeholder="Esq."></div></div>
+          </div>
+          <div class="fi-row">
+            <div class="field"><div class="f-lbl">Panturrilha D / E (cm)</div><div class="fi-row"><input class="fi" type="number" step=".1" name="pant_d" placeholder="Dir."><input class="fi" type="number" step=".1" name="pant_e" placeholder="Esq."></div></div>
+            <div class="field"><div class="f-lbl">Histórico de peso</div><input class="fi" type="text" name="hist_peso" placeholder="Ex: máx 90kg, mín 62kg"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head"><span class="sec-num">03</span><span class="sec-title">Para onde você quer chegar</span></div>
+      <div class="card">
+        <div class="card-body">
+          <div class="fi-row">
+            <div class="field"><div class="f-lbl">Peso alvo (kg)</div><input class="fi" type="number" name="meta_peso" step=".1" placeholder="65"></div>
+            <div class="field"><div class="f-lbl">Prazo (meses)</div><input class="fi" type="number" name="meta_prazo" placeholder="6"></div>
+          </div>
+          <div class="field">
+            <div class="f-lbl">Prioridade principal</div>
+            <div class="choices" data-group="meta_prioridade">
+              <div class="ch" data-value="Hipertrofia">Hipertrofia</div>
+              <div class="ch" data-value="Perda de gordura">Perda de gordura</div>
+              <div class="ch" data-value="Recomposição">Recomposição</div>
+              <div class="ch" data-value="Performance">Performance</div>
+              <div class="ch" data-value="Saúde / Longevidade">Saúde / Longevidade</div>
+            </div>
+          </div>
+          <div class="field"><div class="f-lbl">Objetivos detalhados</div><textarea class="fi" name="objetivos" placeholder="Detalhes dos seus objetivos..."></textarea></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head"><span class="sec-num">04</span><span class="sec-title">Sua rotina real</span></div>
+      <div class="card">
+        <div class="card-body">
+          <div class="field"><div class="f-lbl">Profissão e horário de trabalho</div><textarea class="fi" name="profissao" placeholder="Ex: Analista, 8h–18h"></textarea></div>
+          <div class="field"><div class="f-lbl">Estudos (horário)</div><input class="fi" type="text" name="estudos" placeholder="Ex: Faculdade 19h–22h"></div>
+          <div class="fi-row">
+            <div class="field"><div class="f-lbl">Horário de dormir</div><input class="fi" type="text" name="horario_dormir" placeholder="Ex: 23h"></div>
+            <div class="field"><div class="f-lbl">Horário de acordar</div><input class="fi" type="text" name="horario_acordar" placeholder="Ex: 6h30"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head"><span class="sec-num">05</span><span class="sec-title">Histórico de treino</span></div>
+      <div class="card">
+        <div class="card-lbl">Experiência</div>
+        <div class="card-body">
+          <div class="fi-row">
+            <div class="field"><div class="f-lbl">Anos treinando</div><input class="fi" type="number" name="anos_treino" placeholder="Ex: 3"></div>
+            <div class="field"><div class="f-lbl">Nível</div>
+              <div class="choices g3" data-group="nivel_treino">
+                <div class="ch" data-value="Iniciante">Iniciante</div><div class="ch" data-value="Intermediário">Intermediário</div><div class="ch" data-value="Avançado">Avançado</div>
+              </div>
+            </div>
+          </div>
+          <div class="field"><div class="f-lbl">Atividades físicas atuais</div><textarea class="fi" name="atividades" placeholder="Ex: Musculação 4x/sem"></textarea></div>
+          <div class="field"><div class="f-lbl">Horários dos treinos</div><input class="fi" type="text" name="horarios_treino" placeholder="Ex: Seg/Qua/Sex 7h"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-lbl">Disponibilidade</div>
+        <div class="card-body">
+          <div class="fi-row">
+            <div class="field"><div class="f-lbl">Dias / semana</div><input class="fi" type="number" name="dias_treino" placeholder="Ex: 4"></div>
+            <div class="field"><div class="f-lbl">Duração máxima</div><input class="fi" type="text" name="duracao_sessao" placeholder="Ex: 60 min"></div>
+          </div>
+          <div class="field"><div class="f-lbl">Tem acesso a academia?</div>
+            <div class="choices g3" data-group="tem_academia">
+              <div class="ch" data-value="Sim" data-theme="green">Sim</div><div class="ch" data-value="Home gym">Home gym</div><div class="ch" data-value="Não">Não</div>
+            </div>
+          </div>
+          <div class="field"><div class="f-lbl">Equipamentos (se home gym)</div><input class="fi" type="text" name="equipamentos" placeholder="Ex: Barras, halteres"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-lbl">Diagnóstico Atual</div>
+        <div class="card-body">
+          <div class="field"><div class="f-lbl">Há quanto tempo não tira descanso (1-2 sem)?</div><input class="fi" type="text" name="descanso_treino" placeholder="Ex: 8 meses"></div>
+          <div class="field"><div class="f-lbl">Periodiza o treinamento?</div>
+            <div class="choices" data-group="periodiza"><div class="ch" data-value="Não">Não</div><div class="ch" data-value="Sim">Sim</div><div class="ch" data-value="Às vezes">Às vezes</div></div>
+          </div>
+          <div class="field"><div class="f-lbl">Sente estagnação de resultados?</div>
+            <div class="choices" data-group="estagnacao">
+              <div class="ch" data-value="Não">Não</div><div class="ch" data-value="Sim, recente" data-theme="amber">Sim, recente</div><div class="ch" data-value="Sim, há muito tempo" data-theme="red">Sim, há muito tempo</div>
+            </div>
+          </div>
+          <div class="field"><div class="f-lbl">Pump muscular no treino</div>
+            <div class="choices" data-group="pump">
+              <div class="ch" data-value="Inexistente" data-theme="red">Inexistente</div><div class="ch" data-value="Fraco" data-theme="amber">Fraco</div><div class="ch" data-value="Bom" data-theme="green">Bom</div><div class="ch" data-value="Ótimo" data-theme="green">Ótimo</div>
+            </div>
+          </div>
+          <div class="field"><div class="f-lbl">Lesões ativas ou histórico ortopédico</div><textarea class="fi" name="lesoes" placeholder="Ex: Lesão no ombro..."></textarea></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head"><span class="sec-num">06</span><span class="sec-title">Histórico de Substâncias</span></div>
+      <div class="card">
+        <div class="card-body">
+          <div class="field"><div class="f-lbl">Remédios prescritos</div><textarea class="fi" name="remedios" placeholder="Nenhum."></textarea></div>
+          <div class="field"><div class="f-lbl">Drogas lícitas / ilícitas</div><textarea class="fi" name="drogas" placeholder="Ex: Álcool social"></textarea></div>
+          <div class="field"><div class="f-lbl">Hormônios / anabolizantes / anticoncepcionais</div><textarea class="fi" name="hormonios" placeholder="Nenhum."></textarea></div>
+          <div class="field"><div class="f-lbl">Estimulantes (café, pré-treino, termogênico)</div><textarea class="fi" name="estimulantes" placeholder="Ex: 2 cafés/dia"></textarea></div>
+          <div class="field"><div class="f-lbl">Suplementação atual completa</div><textarea class="fi" name="suplementacao" placeholder="Ex: Creatina, Whey"></textarea></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head"><span class="sec-num">07</span><span class="sec-title">Alimentação & digestão</span></div>
+      <div class="card">
+        <div class="card-body">
+          <div class="field"><div class="f-lbl">Litros de água/dia</div>
+            <div class="choices" data-group="hidratacao">
+              <div class="ch" data-value="≤1L" data-theme="red">≤ 1L</div><div class="ch" data-value="2L" data-theme="amber">2L</div><div class="ch" data-value="3L">3L</div><div class="ch" data-value="4L" data-theme="green">4L</div><div class="ch" data-value="5L+" data-theme="green">5L+</div>
+            </div>
+          </div>
+          <div class="field"><div class="f-lbl">Recordatório alimentar (dia típico)</div><textarea class="fi" name="recordatorio" placeholder="07h — ..."></textarea></div>
+          <div class="field"><div class="f-lbl">Disponibilidade alimentar no dia</div><textarea class="fi" name="disponibilidade_alim" placeholder="Ex: Posso levar marmita"></textarea></div>
+          <div class="field"><div class="f-lbl">Alergias / Intolerâncias</div><textarea class="fi" name="alergias" placeholder="Ex: Intolerante a lactose"></textarea></div>
+          <div class="field"><div class="f-lbl">Relação com a comida / Histórico de dietas</div><textarea class="fi" name="rel_comida" placeholder="Descreva..."></textarea></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-lbl">Saúde Intestinal</div>
+        <div class="card-body">
+          <div class="field"><div class="f-lbl">Frequência e consistência das fezes</div>
+            <div class="choices col" data-group="fezes">
+              <div class="ch" data-value="Preso" data-theme="red">Preso (duras)</div><div class="ch" data-value="Irregular" data-theme="amber">Irregular</div><div class="ch" data-value="Normal" data-theme="green">Normal (fácil)</div><div class="ch" data-value="Solto">Solto / pastoso</div>
+            </div>
+          </div>
+          <div class="field"><div class="f-lbl">Refluxo, gastrite, azia, gases</div><textarea class="fi" name="gastrico" placeholder="Ex: Gastrite leve"></textarea></div>
+          <div class="field"><div class="f-lbl">Obs. adicionais sobre intestino</div><input class="fi" type="text" name="obs_fezes" placeholder="Ex: Gases com leguminosas"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head"><span class="sec-num">08</span><span class="sec-title">Descanso & recuperação</span></div>
+      <div class="card">
+        <div class="card-body">
+          <div class="fi-row">
+            <div class="field"><div class="f-lbl">Tempo para dormir</div><input class="fi" type="text" name="tempo_sono" placeholder="Ex: 20 min"></div>
+            <div class="field"><div class="f-lbl">Pico de cansaço</div><input class="fi" type="text" name="pico_cansaco" placeholder="Ex: 15h"></div>
+          </div>
+          <div class="field"><div class="f-lbl">Acorda descansado?</div>
+            <div class="choices g3" data-group="acorda_descansado">
+              <div class="ch" data-value="Sim" data-theme="green">Sim</div><div class="ch" data-value="Às vezes">Às vezes</div><div class="ch" data-value="Não" data-theme="red">Não</div>
+            </div>
+          </div>
+          <div class="field"><div class="f-lbl">Acorda à noite?</div><input class="fi" type="text" name="acorda_noite" placeholder="Ex: Não"></div>
+          <div class="field"><div class="f-lbl">Respiração e sintomas noturnos</div><textarea class="fi" name="sintomas_noturnos" placeholder="Boca seca, ronco..."></textarea></div>
+          <div class="field"><div class="f-lbl">HRV (Se tiver relógio)</div><input class="fi" type="text" name="hrv" placeholder="Ex: 52ms"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head"><span class="sec-num">09</span><span class="sec-title">Como você se sente</span></div>
+      <div class="nota">Avalie de 0 (péssimo) a 10 (excelente) como tem se sentido nos últimos 30 dias.</div>
+      <div class="card"><div class="card-body" id="ana_slidersWrap"></div></div>
+      <div class="card"><div class="card-body">
+        <div class="field"><div class="f-lbl">Observações adicionais</div><textarea class="fi" name="obs_neuro" placeholder="Foco, memória..."></textarea></div>
+      </div></div>
+    </div>
+
+    <div class="sec hidden" id="ana_secFem">
+      <div class="sec-head"><span class="sec-num">10</span><span class="sec-title">Saúde Feminina</span></div>
+      <div class="card">
+        <div class="card-lbl">Ciclo e TPM</div>
+        <div class="card-body">
+          <div class="field"><div class="f-lbl">Ciclo Menstrual</div>
+            <div class="choices g3" data-group="ciclo_regular">
+              <div class="ch" data-value="Regular" data-theme="green">Regular</div><div class="ch" data-value="Irregular" data-theme="amber">Irregular</div><div class="ch" data-value="Ausente">Ausente</div>
+            </div>
+          </div>
+          <div class="field"><div class="f-lbl">Sintomas TPM</div>
+            <div class="checks" id="ana_tpmChecks">
+              <div class="ck" data-val="Inchaço"><div class="ck-box">✓</div>Inchaço</div><div class="ck" data-val="Oscilação de humor"><div class="ck-box">✓</div>Oscilação humor</div>
+              <div class="ck" data-val="Cólicas"><div class="ck-box">✓</div>Cólicas</div><div class="ck" data-val="Fadiga"><div class="ck-box">✓</div>Fadiga</div>
+              <div class="ck" data-val="Insônia"><div class="ck-box">✓</div>Insônia</div><div class="ck" data-val="Ansiedade"><div class="ck-box">✓</div>Ansiedade</div>
+              <div class="ck" data-val="Sem sintomas" data-solo="1"><div class="ck-box">✓</div>Sem sintomas</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-lbl">Queda Capilar Feminina</div>
+        <div class="card-body">
+          <div class="field"><div class="f-lbl">Onde percebe mais queda?</div>
+            <div class="checks" id="ana_quedaFemChecks">
+              <div class="ck" data-val="Topo"><div class="ck-box">✓</div>Topo</div><div class="ck" data-val="Franja"><div class="ck-box">✓</div>Franja</div>
+              <div class="ck" data-val="Têmporas"><div class="ck-box">✓</div>Têmporas</div><div class="ck" data-val="Difuso"><div class="ck-box">✓</div>Difuso</div>
+              <div class="ck" data-val="Nenhuma" data-solo="1"><div class="ck-box">✓</div>Nenhuma</div>
+            </div>
+          </div>
+          <div class="field"><div class="f-lbl">Histórico capilar familiar (Mãe/Avó)</div>
+            <div class="choices g3" data-group="hist_capilar_f"><div class="ch" data-value="Cheio" data-theme="green">Cheio</div><div class="ch" data-value="Fino">Fino</div><div class="ch" data-value="Não sei">Não sei</div></div>
+          </div>
+          <div class="field"><div class="f-lbl">Fator desencadeante suspeito</div><input class="fi" type="text" name="queda_causa_f" placeholder="Ex: pós-parto, stress"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec hidden" id="ana_secMasc">
+      <div class="sec-head"><span class="sec-num">10</span><span class="sec-title">Saúde Masculina</span></div>
+      <div class="card">
+        <div class="card-body">
+          <div class="field"><div class="f-lbl">Ereção matinal</div>
+            <div class="choices g3" data-group="erecao_matinal">
+              <div class="ch" data-value="Forte" data-theme="green">Forte</div><div class="ch" data-value="Normal">Normal</div><div class="ch" data-value="Fraca" data-theme="amber">Fraca</div><div class="ch" data-value="Ausente" data-theme="red">Ausente</div>
+            </div>
+          </div>
+          <div class="field"><div class="f-lbl">Queda capilar atual</div>
+            <div class="choices" data-group="queda_masc">
+              <div class="ch" data-value="Sem queda" data-theme="green">Sem queda</div><div class="ch" data-value="Entradas">Entradas</div><div class="ch" data-value="Vértex">Vértex</div><div class="ch" data-value="Avançada" data-theme="red">Avançada</div>
+            </div>
+          </div>
+          <div class="field"><div class="f-lbl">Grau progressão</div>
+            <div class="choices g3" data-group="queda_masc_grau">
+              <div class="ch" data-value="Estável">Estável</div><div class="ch" data-value="Lenta">Lenta</div><div class="ch" data-value="Rápida" data-theme="red">Rápida</div>
+            </div>
+          </div>
+          <div class="field"><div class="f-lbl">Histórico familiar paterno</div>
+            <div class="choices g3" data-group="hist_pai">
+              <div class="ch" data-value="Cheio" data-theme="green">Cheio</div><div class="ch" data-value="Calvo parcial">Parcial</div><div class="ch" data-value="Calvo total">Total</div>
+            </div>
+          </div>
+          <div class="field"><div class="f-lbl">Histórico materno (avô materno)</div>
+            <div class="choices g3" data-group="hist_avo_mat">
+              <div class="ch" data-value="Cheio" data-theme="green">Cheio</div><div class="ch" data-value="Calvo parcial">Parcial</div><div class="ch" data-value="Calvo total">Total</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head"><span class="sec-num">11</span><span class="sec-title">Histórico clínico</span></div>
+      <div class="card">
+        <div class="card-body">
+          <div class="field"><div class="f-lbl">Temperatura corporal ao acordar (Média)</div><input class="fi" type="text" name="temperatura" placeholder="Ex: 36.4 °C"></div>
+          <div class="field"><div class="f-lbl">Doenças pré-existentes / Família</div><textarea class="fi" name="doencas" placeholder="Ex: Hipotireoidismo..."></textarea></div>
+          <div class="field"><div class="f-lbl">Mudanças negativas nos últimos 3 anos</div><textarea class="fi" name="mudancas_neg" placeholder="Ex: Imunidade baixa..."></textarea></div>
+          <div class="field"><div class="f-lbl">Cirurgias</div><input class="fi" type="text" name="cirurgias" placeholder="Nenhuma."></div>
+          <div class="fi-row">
+            <div class="field"><div class="f-lbl">Tratamento de Canal</div><input class="fi" type="text" name="canal" placeholder="Nenhum"></div>
+            <div class="field"><div class="f-lbl">Implantes / Metal</div><input class="fi" type="text" name="implantes" placeholder="DIU, pinos..."></div>
+          </div>
+          <div class="field"><div class="f-lbl">Observações finais importantes</div><textarea class="fi" name="obs_finais" placeholder="Algo que não foi perguntado?"></textarea></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="submit-wrap" style="margin-top:40px;">
+      <button class="btn-submit" id="ana_btnSubmit" onclick="Ana.submitForm()">Enviar Anamnese</button>
+    </div>
+  </div>
+  <div class="toast" id="ana_toast"></div>
+</div>
+
+<div id="modChk" class="module">
+
+  <div id="chk_success" class="success-screen">
+    <div class="suc-ring">✓</div>
+    <div class="suc-title">Check-in enviado</div>
+    <div class="suc-sub">Obrigada, <span id="chk_suc_nome" style="color:var(--crimson);font-weight:bold;"></span>. Retorno em breve.</div>
+    <div style="font-size:.75rem;color:var(--muted);margin-top:4px;" id="chk_countdown">Voltando ao início em 4s…</div>
+    <button class="btn-novo" onclick="Chk.resetForm()">Iniciar novo agora</button>
+  </div>
+
+  <div class="topbar">
+    <div class="tb-brand">Check‑in</div>
+    <button class="tb-btn" onclick="Chk.clearDraft()">Limpar</button>
+  </div>
+
+  <div class="prog-wrap">
+    <div class="prog-meta"><span class="prog-label" id="chk_lbl">Identificação</span><span class="prog-pct" id="chk_frac">1 / 5</span></div>
+    <div class="prog-track"><div class="prog-fill" id="chk_prog_fill" style="width:20%"></div></div>
+  </div>
+
+  <div class="main main-chk">
+
+    <div class="step active" data-step="1">
+      <div class="sec-head"><span class="sec-num">01</span><span class="sec-title">Identificação</span></div>
+      <div class="card">
+        <div class="card-body">
+          <div class="field"><div class="f-lbl">Nome completo</div><input class="fi" type="text" name="nome" id="chk_nome" placeholder="Seu nome"></div>
+          <div class="field"><div class="f-lbl">E-mail</div><input class="fi" type="email" name="email" placeholder="voce@email.com"></div>
+          <div class="field"><div class="f-lbl">Data</div><input class="fi" type="date" name="data_envio" id="chk_data"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-lbl">Humor</div>
+        <div class="card-body">
+          <div class="choices g3" data-group="humor_geral">
+            <div class="ch" data-value="Animada" data-theme="green">Animada</div><div class="ch" data-value="Normal">Normal</div><div class="ch" data-value="Cansada" data-theme="red">Cansada</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step" data-step="2">
+      <div class="sec-head"><span class="sec-num">02</span><span class="sec-title">Medidas Atuais</span></div>
+      <div class="card" id="chk_medRows"></div>
+      <div class="card" style="margin-top:14px;">
+        <div class="card-lbl">Carbo Alto</div>
+        <div class="card-body">
+          <div class="f-lbl">Sensação no dia seguinte:</div>
+          <div class="choices g3" data-group="carbo_sensacao">
+            <div class="ch" data-value="Melhor" data-theme="green">Melhor</div><div class="ch" data-value="Igual">Igual</div><div class="ch" data-value="Pior" data-theme="red">Pior</div><div class="ch" data-value="Não fiz">N/A</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step" data-step="3">
+      <div class="sec-head"><span class="sec-num">03</span><span class="sec-title">Dieta e Adesão</span></div>
+      <div class="card">
+        <div class="card-body">
+          <div class="field"><div class="f-lbl">Seguiu o protocolo?</div>
+            <div class="choices g3" data-group="dieta_adesao">
+              <div class="ch" data-value="100%" data-theme="green">100%</div><div class="ch" data-value="Maioria">Maioria</div><div class="ch" data-value="Desvios" data-theme="red">Desvios</div>
+            </div>
+          </div>
+          <div class="field"><div class="f-lbl">Refeições fora de casa</div>
+            <div class="choices g3" data-group="refeicoes_fora">
+              <div class="ch" data-value="Nenhuma" data-theme="green">Nenhuma</div><div class="ch" data-value="1 ou 2">1 ou 2</div><div class="ch" data-value="3+" data-theme="red">3+</div>
+            </div>
+          </div>
+          <div class="field"><div class="f-lbl">Água diária (média)</div>
+            <div class="choices g3" data-group="agua">
+              <div class="ch" data-value="≤2L" data-theme="red">≤ 2L</div><div class="ch" data-value="3L">3L</div><div class="ch" data-value="4L+" data-theme="green">4L+</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card" style="margin-top:14px;">
+        <div class="card-lbl">Intestino</div>
+        <div class="card-body">
+          <div class="field"><div class="f-lbl">Frequência</div>
+            <div class="choices g3" data-group="int_freq">
+              <div class="ch" data-value="< 1x dia" data-theme="red">&lt; 1× dia</div><div class="ch" data-value="1-2x dia" data-theme="green">1-2× dia</div><div class="ch" data-value="3x+">3×+ dia</div>
+            </div>
+          </div>
+          <div class="field"><div class="f-lbl">Consistência</div>
+            <div class="choices g2" data-group="int_cons">
+              <div class="ch" data-value="Preso" data-theme="red">Preso</div><div class="ch" data-value="Normal" data-theme="green">Normal</div><div class="ch" data-value="Irregular" data-theme="amber">Irregular</div><div class="ch" data-value="Solto">Solto</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step" data-step="4">
+      <div class="sec-head"><span class="sec-num">04</span><span class="sec-title">Treino & Sono</span></div>
+      <div class="card">
+        <div class="card-body">
+          <div class="field"><div class="f-lbl">Faltou algum dia de treino?</div><div class="choices g3" data-group="treino_falta"><div class="ch" data-value="Nenhum" data-theme="green">Nenhum</div><div class="ch" data-value="1 dia">1 dia</div><div class="ch" data-value="2+ dias" data-theme="red">2+ dias</div></div></div>
+          <div class="field"><div class="f-lbl">Pump e Desempenho</div><div class="choices g3" data-group="treino_perf"><div class="ch" data-value="Excelente" data-theme="green">Excelente</div><div class="ch" data-value="Médio">Médio</div><div class="ch" data-value="Ruim" data-theme="red">Ruim</div></div></div>
+          <div class="field"><div class="f-lbl">Disponibilidade Aeróbico Jejum (40-50m)?</div><div class="choices g3" data-group="aerobico_jejum"><div class="ch" data-value="Sim" data-theme="green">Sim</div><div class="ch" data-value="Alguns dias">Alguns dias</div><div class="ch" data-value="Não" data-theme="red">Não</div></div></div>
+          <div class="field"><div class="f-lbl">Obs. Aeróbico (Opcional)</div><input class="fi" type="text" name="aerobico_obs" placeholder="Ex: Acordo tarde..."></div>
+          <div class="field"><div class="f-lbl">Horário de treino na próxima quinzena</div><input class="fi" type="text" name="treino_horario" placeholder="Ex: 19:30"></div>
+        </div>
+      </div>
+      <div class="card" style="margin-top:14px;">
+        <div class="card-body">
+          <div class="field"><div class="f-lbl">Qualidade do Sono (Disposição)</div>
+            <div class="choices g3" data-group="sono_disp">
+              <div class="ch" data-value="Descansada" data-theme="green">Descansada</div><div class="ch" data-value="Regular">Regular</div><div class="ch" data-value="Cansada" data-theme="red">Cansada</div>
+            </div>
+          </div>
+          <div class="field"><div class="f-lbl">Acorda à noite?</div>
+            <div class="choices g3" data-group="sono_acorda">
+              <div class="ch" data-value="Não" data-theme="green">Não</div><div class="ch" data-value="1x">1x</div><div class="ch" data-value="2x+" data-theme="red">2x+</div>
+            </div>
+          </div>
+          <div class="field"><div class="f-lbl">Stress geral</div>
+            <div class="choices g3" data-group="stress">
+              <div class="ch" data-value="Baixo" data-theme="green">Baixo</div><div class="ch" data-value="Médio">Médio</div><div class="ch" data-value="Alto" data-theme="red">Alto</div>
+            </div>
+          </div>
+          <div class="field"><div class="f-lbl">Libido</div>
+            <div class="choices g3" data-group="libido">
+              <div class="ch" data-value="Alta" data-theme="green">Alta</div><div class="ch" data-value="Normal">Normal</div><div class="ch" data-value="Baixa" data-theme="red">Baixa</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step" data-step="5">
+      <div class="sec-head"><span class="sec-num">05</span><span class="sec-title">Finalização</span></div>
+      <div class="card">
+        <div class="card-lbl">Aparência</div>
+        <div class="card-body">
+          <div class="field"><div class="f-lbl">Notou melhora no corpo?</div>
+            <div class="choices g3" data-group="aparencia">
+              <div class="ch" data-value="Melhorou" data-theme="green">Melhorou</div><div class="ch" data-value="Igual">Igual</div><div class="ch" data-value="Piorou" data-theme="red">Piorou</div>
+            </div>
+          </div>
+          <div class="field"><div class="f-lbl">Descreva brevemente (opcional)</div><input class="fi" type="text" name="aparencia_desc" placeholder="Definição, retenção..."></div>
+        </div>
+      </div>
+      
+      <div class="card" style="margin-top:14px;">
+        <div class="card-lbl">Temperatura Basal (°C)</div>
+        <div class="card-body">
+          <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;">
+            <input class="fi" style="padding:10px 4px;text-align:center;" type="number" step="0.01" name="temp_d1" placeholder="D1" oninput="Chk.calcTemp()">
+            <input class="fi" style="padding:10px 4px;text-align:center;" type="number" step="0.01" name="temp_d2" placeholder="D2" oninput="Chk.calcTemp()">
+            <input class="fi" style="padding:10px 4px;text-align:center;" type="number" step="0.01" name="temp_d3" placeholder="D3" oninput="Chk.calcTemp()">
+            <input class="fi" style="padding:10px 4px;text-align:center;" type="number" step="0.01" name="temp_d4" placeholder="D4" oninput="Chk.calcTemp()">
+            <input class="fi" style="padding:10px 4px;text-align:center;" type="number" step="0.01" name="temp_d5" placeholder="D5" oninput="Chk.calcTemp()">
+          </div>
+          <div class="field" style="margin-top:10px;"><div class="f-lbl">Média</div><input class="fi" type="text" id="chk_temp_media" readonly placeholder="Calculado auto." style="color:var(--crimson);font-weight:600;"></div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:14px;">
+        <div class="card-lbl">Mudanças e Colaterais</div>
+        <div class="col-wrap" id="chk_colWrap">
+          <div class="grp-lbl">Pele, cabelo e corpo</div>
+          <div class="col-item" data-col="Acne aumentou"><div class="col-trigger"><div class="col-trigger-left"><div class="col-check">✓</div><span class="col-name">Acne aumentou</span></div><span class="col-arrow">▾</span></div><div class="col-body"><div class="col-intensity" data-col-int="Acne aumentou"></div></div></div>
+          <div class="col-item" data-col="Pele mais oleosa"><div class="col-trigger"><div class="col-trigger-left"><div class="col-check">✓</div><span class="col-name">Pele mais oleosa</span></div><span class="col-arrow">▾</span></div><div class="col-body"><div class="col-intensity" data-col-int="Pele mais oleosa"></div></div></div>
+          <div class="col-item" data-col="Queda de cabelo"><div class="col-trigger"><div class="col-trigger-left"><div class="col-check">✓</div><span class="col-name">Queda de cabelo</span></div><span class="col-arrow">▾</span></div><div class="col-body"><div class="col-intensity" data-col-int="Queda de cabelo"></div></div></div>
+          <div class="col-item" data-col="Crescimento de pelos"><div class="col-trigger"><div class="col-trigger-left"><div class="col-check">✓</div><span class="col-name">Crescimento de pelos</span></div><span class="col-arrow">▾</span></div><div class="col-body"><div class="col-intensity" data-col-int="Crescimento de pelos"></div></div></div>
+          <div class="col-item" data-col="Retenção / inchaço"><div class="col-trigger"><div class="col-trigger-left"><div class="col-check">✓</div><span class="col-name">Retenção / inchaço</span></div><span class="col-arrow">▾</span></div><div class="col-body"><div class="col-intensity" data-col-int="Retenção / inchaço"></div></div></div>
+          <div class="col-item" data-col="Alteração menstrual"><div class="col-trigger"><div class="col-trigger-left"><div class="col-check">✓</div><span class="col-name">Alteração menstrual</span></div><span class="col-arrow">▾</span></div><div class="col-body"><div class="col-intensity" data-col-int="Alteração menstrual"></div></div></div>
+          <div class="col-item" data-col="Voz grossa / rouca"><div class="col-trigger"><div class="col-trigger-left"><div class="col-check">✓</div><span class="col-name">Voz grossa / rouca</span></div><span class="col-arrow">▾</span></div><div class="col-body"><div class="col-intensity" data-col-int="Voz grossa / rouca"></div></div></div>
+          <div class="grp-lbl">Bem-estar e foco</div>
+          <div class="col-item" data-col="Mais irritada"><div class="col-trigger"><div class="col-trigger-left"><div class="col-check">✓</div><span class="col-name">Mais irritada</span></div><span class="col-arrow">▾</span></div><div class="col-body"><div class="col-intensity" data-col-int="Mais irritada"></div></div></div>
+          <div class="col-item" data-col="Mais ansiosa"><div class="col-trigger"><div class="col-trigger-left"><div class="col-check">✓</div><span class="col-name">Mais ansiosa</span></div><span class="col-arrow">▾</span></div><div class="col-body"><div class="col-intensity" data-col-int="Mais ansiosa"></div></div></div>
+          <div class="col-item" data-col="Falta de foco"><div class="col-trigger"><div class="col-trigger-left"><div class="col-check">✓</div><span class="col-name">Falta de foco</span></div><span class="col-arrow">▾</span></div><div class="col-body"><div class="col-intensity" data-col-int="Falta de foco"></div></div></div>
+          <div class="grp-lbl">Performance</div>
+          <div class="col-item" data-col="Cansaço excessivo"><div class="col-trigger"><div class="col-trigger-left"><div class="col-check">✓</div><span class="col-name">Cansaço excessivo</span></div><span class="col-arrow">▾</span></div><div class="col-body"><div class="col-intensity" data-col-int="Cansaço excessivo"></div></div></div>
+          <div class="col-item" data-col="Falta de força"><div class="col-trigger"><div class="col-trigger-left"><div class="col-check">✓</div><span class="col-name">Falta de força</span></div><span class="col-arrow">▾</span></div><div class="col-body"><div class="col-intensity" data-col-int="Falta de força"></div></div></div>
+          <div class="col-item" data-col="Sensibilidade mamária"><div class="col-trigger"><div class="col-trigger-left"><div class="col-check">✓</div><span class="col-name">Sensibilidade mamária</span></div><span class="col-arrow">▾</span></div><div class="col-body"><div class="col-intensity" data-col-int="Sensibilidade mamária"></div></div></div>
+          <div class="grp-lbl">Geral</div>
+          <div class="col-item" data-col="Nenhum percebido" data-no-intensity="1"><div class="col-trigger" style="border-bottom:none;"><div class="col-trigger-left"><div class="col-check">✓</div><span class="col-name">Nenhum percebido</span></div></div></div>
+        </div>
+        <div class="card-body" style="padding-top:10px;">
+          <div class="field"><div class="f-lbl">Obs. Colaterais</div><textarea class="fi" name="col_obs" placeholder="Detalhes..."></textarea></div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:14px;">
+        <div class="card-lbl">Substâncias</div>
+        <div class="card-body">
+          <div class="field"><div class="f-lbl">Faltou algum medicamento/suplemento?</div><input class="fi" type="text" name="subst_faltou" placeholder="Ex: Magnésio acabou."></div>
+          <div class="field"><div class="f-lbl">Usou algo não prescrito?</div><input class="fi" type="text" name="subst_extra" placeholder="Ex: Ibuprofeno"></div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:14px;">
+        <div class="card-body">
+          <div class="field"><div class="f-lbl">Dúvidas e Comentários Gerais</div><textarea class="fi" name="comentarios" placeholder="Escreva aqui..."></textarea></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="nav">
+    <button class="btn-back" id="chk_btnBack" disabled>← Voltar</button>
+    <button class="btn-next" id="chk_btnNext">Continuar</button>
+  </div>
+  <div class="toast" id="chk_toast"></div>
+</div>
+
+<script>
+/* ══════════════════════════════════════════════════════════════════════
+   LÓGICA GLOBAL E PORTAL
+═══════════════════════════════════════════════════════════════════════ */
+var W3F_KEY = 'ab9159c3-f1e5-462a-aec7-5632170454e5';
+
+var Portal = {
+  CODES: { 'RENNAN2025': 'ana', 'RENNAN2026': 'chk' },
+  init: function() {
+    try {
+      var saved = sessionStorage.getItem('portal_auth');
+      if (saved && (saved === 'ana' || saved === 'chk')) {
+        document.getElementById('gate').style.display = 'none';
+        Portal.openModule(saved);
+      }
+    } catch(e) {}
+  },
+  checkGate: function() {
+    var input = document.getElementById('gateInput');
+    var err = document.getElementById('gateErr');
+    if (!input) return;
+    var v = input.value.trim().toUpperCase();
+    var mod = Portal.CODES[v];
+    if (mod) {
+      document.getElementById('gate').style.display = 'none';
+      try { sessionStorage.setItem('portal_auth', mod); } catch(e) {}
+      Portal.openModule(mod);
+    } else {
+      err.textContent = 'Código incorreto.';
+      input.value = '';
+      setTimeout(function() { err.textContent = ''; }, 3000);
+    }
+  },
+  openModule: function(mod) {
+    var modAna = document.getElementById('modAna');
+    var modChk = document.getElementById('modChk');
+    if (modAna) modAna.classList.toggle('active', mod === 'ana');
+    if (modChk) modChk.classList.toggle('active', mod === 'chk');
+    if (mod === 'ana' && typeof Ana !== 'undefined') Ana.init();
+    if (mod === 'chk' && typeof Chk !== 'undefined') Chk.init();
+  }
+};
+
+/* ══════════════════════════════════════════════════════════════════════
+   MÓDULO: ANAMNESE
+═══════════════════════════════════════════════════════════════════════ */
+var Ana = {
+  initialized: false,
+  STORE: 'ana_data_v4',
+  state: { groups: {}, gender: '', tpm: [], quedaF: [] },
+  saveTimer: null,
+  SLIDERS: [
+    {name:'Motivação', key:'neuro_motivacao'}, {name:'Concentração', key:'neuro_concentracao'},
+    {name:'Memória', key:'neuro_memoria_curto'}, {name:'Aprendizado', key:'neuro_aprendizado'},
+    {name:'Libido', key:'neuro_libido'}, {name:'Prazer simples', key:'neuro_prazer'},
+    {name:'Sociabilidade', key:'neuro_social'}, {name:'Fluência verbal', key:'neuro_fluencia'}
+  ],
+  init: function() {
+    if (Ana.initialized) return;
+    Ana.buildSliders();
+    Ana.bindChoices();
+    Ana.bindChecks();
+    var container = document.getElementById('modAna');
+    var fis = container.querySelectorAll('.fi');
+    for (var i = 0; i < fis.length; i++) {
+      fis[i].addEventListener('input', function() {
+        Ana.updateProg(); Ana.computeStats(); Ana.saveDraft();
+      });
+    }
+    Ana.loadDraft();
+    Ana.updateProg();
+    Ana.initialized = true;
+  },
+  setGender: function(g) {
+    Ana.state.gender = g;
+    var container = document.getElementById('modAna');
+    var btnF = container.querySelector('#ana_gBtnF');
+    var btnM = container.querySelector('#ana_gBtnM');
+    if (btnF) btnF.className = 'gender-btn' + (g === 'F' ? ' sel-f' : '');
+    if (btnM) btnM.className = 'gender-btn' + (g === 'M' ? ' sel-m' : '');
+    var secFem = container.querySelector('#ana_secFem');
+    var secMasc = container.querySelector('#ana_secMasc');
+    if (secFem) secFem.classList.toggle('hidden', g !== 'F');
+    if (secMasc) secMasc.classList.toggle('hidden', g !== 'M');
+    Ana.computeStats();
+    Ana.saveDraft();
+  },
+  buildSliders: function() {
+    var wrap = document.getElementById('ana_slidersWrap');
+    if (!wrap) return;
+    var html = '';
+    for (var i = 0; i < Ana.SLIDERS.length; i++) {
+      var s = Ana.SLIDERS[i];
+      html += '<div class="slider-wrap" style="margin-bottom:12px;">';
+      html += '<div class="f-lbl">' + s.name + '</div>';
+      html += '<div class="slider-row"><input type="range" name="' + s.key + '" min="0" max="10" value="5" oninput="this.nextElementSibling.textContent=this.value;Ana.saveDraft()"><div class="slider-val">5</div></div>';
+      html += '</div>';
+    }
+    wrap.innerHTML = html;
+  },
+  bindChoices: function() {
+    var container = document.getElementById('modAna');
+    var choiceWraps = container.querySelectorAll('.choices');
+    for (var i = 0; i < choiceWraps.length; i++) {
+      (function(wrap) {
+        var grp = wrap.dataset.group;
+        var btns = wrap.querySelectorAll('.ch');
+        for (var j = 0; j < btns.length; j++) {
+          btns[j].addEventListener('click', function(e) {
+            var btn = e.currentTarget;
+            var allBtns = wrap.querySelectorAll('.ch');
+            for (var k = 0; k < allBtns.length; k++) {
+              allBtns[k].classList.remove('sel', 'sel-green', 'sel-amber', 'sel-red');
+            }
+            var t = btn.dataset.theme;
+            btn.classList.add(t === 'green' ? 'sel-green' : t === 'amber' ? 'sel-amber' : t === 'red' ? 'sel-red' : 'sel');
+            Ana.state.groups[grp] = btn.dataset.value;
+            Ana.saveDraft();
+            Ana.updateProg();
+          });
+        }
+      })(choiceWraps[i]);
+    }
+  },
+  bindChecks: function() {
+    var container = document.getElementById('modAna');
+    var checkIds = ['ana_tpmChecks', 'ana_quedaFemChecks'];
+    for (var i = 0; i < checkIds.length; i++) {
+      (function(id) {
+        var wrap = container.querySelector('#' + id);
+        if (!wrap) return;
+        var key = id === 'ana_tpmChecks' ? 'tpm' : 'quedaF';
+        var cks = wrap.querySelectorAll('.ck');
+        for (var j = 0; j < cks.length; j++) {
+          cks[j].addEventListener('click', function(e) {
+            var ck = e.currentTarget;
+            var val = ck.dataset.val;
+            var isSolo = ck.dataset.solo === '1';
+            if (isSolo) {
+              var allCks = wrap.querySelectorAll('.ck');
+              for (var k = 0; k < allCks.length; k++) allCks[k].classList.remove('checked');
+              Ana.state[key] = [];
+            } else {
+              var soloEl = wrap.querySelector('.ck[data-solo="1"]');
+              if (soloEl) soloEl.classList.remove('checked');
+              var newArr = [];
+              for (var m = 0; m < Ana.state[key].length; m++) {
+                if (Ana.state[key][m] !== val && (!soloEl || Ana.state[key][m] !== soloEl.dataset.val)) {
+                  newArr.push(Ana.state[key][m]);
+                }
+              }
+              Ana.state[key] = newArr;
+            }
+            var wasChecked = ck.classList.contains('checked');
+            ck.classList.toggle('checked', !wasChecked);
+            if (!wasChecked && !isSolo) {
+              if (Ana.state[key].indexOf(val) === -1) Ana.state[key].push(val);
+            } else {
+              var finalArr = [];
+              for (var n = 0; n < Ana.state[key].length; n++) {
+                if (Ana.state[key][n] !== val) finalArr.push(Ana.state[key][n]);
+              }
+              Ana.state[key] = finalArr;
+            }
+            Ana.saveDraft();
+          });
+        }
+      })(checkIds[i]);
+    }
+  },
+  computeStats: function() {
+    var container = document.getElementById('modAna');
+    var hEl = container.querySelector('[name="altura"]');
+    var cEl = container.querySelector('[name="cintura"]');
+    var h = hEl ? parseFloat(hEl.value) : 0;
+    var c = cEl ? parseFloat(cEl.value) : 0;
+    var bfField = container.querySelector('#ana_bf_est');
+    if (bfField && h > 0 && c > 0 && Ana.state.gender) {
+      var rfm = Ana.state.gender === 'M' ? 64 - (20 * (h / c)) : 76 - (20 * (h / c));
+      bfField.value = '~' + Math.max(2, rfm).toFixed(1) + '%';
+    } else if (bfField) {
+      bfField.value = '';
+    }
+  },
+  updateProg: function() {
+    var container = document.getElementById('modAna');
+    var filled = 0, total = 0;
+    var fis = container.querySelectorAll('.fi:not([readonly])');
+    for (var i = 0; i < fis.length; i++) {
+      var el = fis[i];
+      if (!el.name || el.closest('.hidden')) continue;
+      total++;
+      if (el.value.trim()) filled++;
+    }
+    var pct = total > 0 ? Math.round((filled / total) * 100) : 0;
+    var fillEl = container.querySelector('#ana_prog_fill');
+    var pctEl = container.querySelector('#ana_prog_pct');
+    if (fillEl) fillEl.style.width = pct + '%';
+    if (pctEl) pctEl.textContent = pct + '%';
+  },
+  saveDraft: function() {
+    var container = document.getElementById('modAna');
+    var d = { gender: Ana.state.gender, groups: Ana.state.groups, tpm: Ana.state.tpm, quedaF: Ana.state.quedaF };
+    var names = container.querySelectorAll('[name]');
+    for (var i = 0; i < names.length; i++) {
+      d[names[i].name] = names[i].value;
+    }
+    try { localStorage.setItem(Ana.STORE, JSON.stringify(d)); } catch(e) {}
+    clearTimeout(Ana.saveTimer);
+    Ana.saveTimer = setTimeout(function() {
+      var p = container.querySelector('#ana_prog_pct');
+      if (p && p.textContent !== '0%') Ana.toast('Salvo auto.');
+    }, 2000);
+  },
+  loadDraft: function() {
+    try {
+      var raw = localStorage.getItem(Ana.STORE);
+      if (!raw) return;
+      var d = JSON.parse(raw);
+      if (d.gender) Ana.setGender(d.gender);
+      var container = document.getElementById('modAna');
+      var names = container.querySelectorAll('[name]');
+      for (var i = 0; i < names.length; i++) {
+        if (d[names[i].name] !== undefined) names[i].value = d[names[i].name];
+      }
+      if (d.groups) {
+        var groupKeys = Object.keys(d.groups);
+        for (var j = 0; j < groupKeys.length; j++) {
+          var grp = groupKeys[j];
+          var val = d.groups[grp];
+          var btn = container.querySelector('[data-group="' + grp + '"] .ch[data-value="' + CSS.escape(val) + '"]');
+          if (btn) { btn.classList.add('sel'); Ana.state.groups[grp] = val; }
+        }
+      }
+      if (d.tpm) {
+        Ana.state.tpm = d.tpm;
+        for (var k = 0; k < d.tpm.length; k++) {
+          var el1 = container.querySelector('#ana_tpmChecks .ck[data-val="' + d.tpm[k] + '"]');
+          if (el1) el1.classList.add('checked');
+        }
+      }
+      if (d.quedaF) {
+        Ana.state.quedaF = d.quedaF;
+        for (var m = 0; m < d.quedaF.length; m++) {
+          var el2 = container.querySelector('#ana_quedaFemChecks .ck[data-val="' + d.quedaF[m] + '"]');
+          if (el2) el2.classList.add('checked');
+        }
+      }
+      Ana.computeStats();
+      Ana.updateProg();
+    } catch(e) {}
+  },
+  clearAll: function() {
+    if (!confirm('Limpar tudo?')) return;
+    try { localStorage.removeItem(Ana.STORE); } catch(e) {}
+    var container = document.getElementById('modAna');
+    var fis = container.querySelectorAll('.fi');
+    for (var i = 0; i < fis.length; i++) fis[i].value = '';
+    var chs = container.querySelectorAll('.ch');
+    for (var j = 0; j < chs.length; j++) chs[j].classList.remove('sel', 'sel-green', 'sel-amber', 'sel-red');
+    var cks = container.querySelectorAll('.ck');
+    for (var k = 0; k < cks.length; k++) cks[k].classList.remove('checked');
+    var ranges = container.querySelectorAll('input[type="range"]');
+    for (var m = 0; m < ranges.length; m++) {
+      ranges[m].value = 5;
+      if (ranges[m].nextElementSibling) ranges[m].nextElementSibling.textContent = '5';
+    }
+    Ana.state.groups = {}; Ana.state.tpm = []; Ana.state.quedaF = [];
+    Ana.setGender('');
+    Ana.updateProg();
+    Ana.toast('Limpo.');
+  },
+  buildEmail: function(d) {
+    function v(k) { return d[k] || '—'; }
+    function gr(k) { return Ana.state.groups[k] || '—'; }
+    function sl(k) { return d[k] || '5'; }
+    var email = "ANAMNESE — PROTOCOLO PERSONALIZADO\n=====================================\n";
+    email += "Gênero: " + (Ana.state.gender === 'F' ? 'Feminino' : Ana.state.gender === 'M' ? 'Masculino' : 'Não informado') + "\n";
+    email += "Nome: " + v('nome') + "\nWhatsApp: " + v('whatsapp') + "\nEmail: " + v('email') + "\nCidade: " + v('cidade') + "\nNasc.: " + v('data_nasc') + "\n\n";
+    email += "MEDIDAS\n-------\nAltura: " + v('altura') + " cm\nPeso: " + v('peso') + " kg\nCintura: " + v('cintura') + " cm\nQuadril: " + v('quadril') + " cm\n";
+    email += "Braço D/E: " + v('braco_d') + " / " + v('braco_e') + " cm\nCoxa D/E: " + v('coxa_d') + " / " + v('coxa_e') + " cm\nPanturrilha D/E: " + v('pant_d') + " / " + v('pant_e') + " cm\n";
+    email += "Histórico peso: " + v('hist_peso') + "\nEst. Gordura: " + v('bf_estimado') + "\n\n";
+    email += "OBJETIVOS\n---------\nPeso alvo: " + v('meta_peso') + " kg\nPrazo: " + v('meta_prazo') + " meses\nPrioridade: " + gr('meta_prioridade') + "\nObjetivos: " + v('objetivos') + "\n\n";
+    email += "ROTINA\n------\nProfissão: " + v('profissao') + "\nEstudos: " + v('estudos') + "\nDorme: " + v('horario_dormir') + "\nAcorda: " + v('horario_acordar') + "\n\n";
+    email += "TREINAMENTO\n-----------\nAnos treino: " + v('anos_treino') + "\nNível: " + gr('nivel_treino') + "\nAtuais: " + v('atividades') + "\nHorários: " + v('horarios_treino') + "\nDias/sem: " + v('dias_treino') + "\nDuração: " + v('duracao_sessao') + "\nAcademia: " + gr('tem_academia') + "\nEquipamentos: " + v('equipamentos') + "\nDescanso: " + v('descanso_treino') + "\nPeriodiza: " + gr('periodiza') + "\nEstagnação: " + gr('estagnacao') + "\nPump: " + gr('pump') + "\nLesões: " + v('lesoes') + "\n\n";
+    email += "SUBSTÂNCIAS\n-----------\nRemédios: " + v('remedios') + "\nDrogas: " + v('drogas') + "\nHormônios: " + v('hormonios') + "\nEstimulantes: " + v('estimulantes') + "\nSuplementos: " + v('suplementacao') + "\n\n";
+    email += "DIETA E TGI\n-----------\nÁgua/dia: " + gr('hidratacao') + "\nRecordat.: " + v('recordatorio') + "\nDisp. Alim.: " + v('disponibilidade_alim') + "\nAlergias: " + v('alergias') + "\nRel. Comida: " + v('rel_comida') + "\nFezes: " + gr('fezes') + "\nGastrico: " + v('gastrico') + "\nObs Intestino: " + v('obs_fezes') + "\n\n";
+    email += "SONO\n----\nTempo: " + v('tempo_sono') + "\nCansaço: " + v('pico_cansaco') + "\nAcorda desc: " + gr('acorda_descansado') + "\nAcorda noite: " + v('acorda_noite') + "\nSintomas not: " + v('sintomas_noturnos') + "\nHRV: " + v('hrv') + "\n\n";
+    email += "NEURO\n-----\nMotivação: " + sl('neuro_motivacao') + "\nConcentração: " + sl('neuro_concentracao') + "\nMemória: " + sl('neuro_memoria_curto') + "\nAprendizado: " + sl('neuro_aprendizado') + "\nLibido: " + sl('neuro_libido') + "\nPrazer: " + sl('neuro_prazer') + "\nSocial: " + sl('neuro_social') + "\nFluência: " + sl('neuro_fluencia') + "\nObs. Neuro: " + v('obs_neuro') + "\n\n";
+    email += "SAÚDE " + (Ana.state.gender === 'F' ? 'FEMININA' : 'MASCULINA') + "\n---------------\n";
+    if (Ana.state.gender === 'F') {
+      email += "Ciclo: " + gr('ciclo_regular') + "\nTPM: " + (Ana.state.tpm.join(', ') || 'Nenhum') + "\nQueda: " + (Ana.state.quedaF.join(', ') || 'Nenhum') + "\nHist. Fam: " + gr('hist_capilar_f') + "\nCausa: " + v('queda_causa_f') + "\n\n";
+    } else {
+      email += "Ereção: " + gr('erecao_matinal') + "\nQueda: " + gr('queda_masc') + "\nProg.: " + gr('queda_masc_grau') + "\nPai: " + gr('hist_pai') + "\nAvô: " + gr('hist_avo_mat') + "\n\n";
+    }
+    email += "CLÍNICO\n-------\nTemp. Basal: " + v('temperatura') + "\nDoenças: " + v('doencas') + "\nMudanças Neg.: " + v('mudancas_neg') + "\nCirurgias: " + v('cirurgias') + "\nCanal: " + v('canal') + "\nImplantes: " + v('implantes') + "\nObs: " + v('obs_finais');
+    return email;
+  },
+  submitForm: function() {
+    var container = document.getElementById('modAna');
+    var d = {};
+    var names = container.querySelectorAll('[name]');
+    for (var i = 0; i < names.length; i++) d[names[i].name] = names[i].value;
+    if (!d.nome) { Ana.toast('Nome obrigatório', 'err'); return; }
+    if (!d.email || d.email.indexOf('@') === -1) { Ana.toast('E-mail inválido.', 'err'); return; }
+    var btn = container.querySelector('#ana_btnSubmit');
+    btn.disabled = true;
+    btn.textContent = 'Enviando...';
+    
+    var payload = { access_key: W3F_KEY, subject: 'Anamnese - ' + d.nome, from_name: d.nome, message: Ana.buildEmail(d) };
+    
+    fetch('https://api.web3forms.com/submit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    }).then(function(res) {
+      if (!res.ok) throw new Error('Network response was not ok');
+      return res.json();
+    }).then(function(data) {
+      var sucNome = container.querySelector('#ana_suc_nome');
+      if (sucNome) sucNome.textContent = d.nome.split(' ')[0];
+      var successScreen = container.querySelector('#ana_success');
+      if (successScreen) successScreen.classList.add('show');
+      try { localStorage.removeItem(Ana.STORE); } catch(e) {}
+    }).catch(function(err) {
+      Ana.toast('Erro de conexão.', 'err');
+    }).finally(function() {
+      btn.disabled = false;
+      btn.textContent = 'Enviar Anamnese';
+    });
+  },
+  toast: function(msg, type) {
+    var t = document.getElementById('ana_toast');
+    if (t) {
+      t.textContent = msg;
+      t.className = 'toast show ' + (type || '');
+      setTimeout(function() { t.classList.remove('show'); }, 3000);
+    }
+  }
+};
+
+/* ══════════════════════════════════════════════════════════════════════
+   MÓDULO: CHECK-IN
+═══════════════════════════════════════════════════════════════════════ */
+var Chk = {
+  initialized: false,
+  STORE: 'chk_data_v4',
+  TOTAL: 5,
+  LABELS: ['Identificação','Medidas','Dieta e Saúde','Treino & Sono','Finalização'],
+  INTENSITY: ['Mínima','Baixa','Moderada','Intensa'],
+  MEDS: [{key:'peso', label:'Peso', unit:'kg'}, {key:'cintura', label:'Cintura', unit:'cm'}, {key:'quadril', label:'Quadril', unit:'cm'}, {key:'coxa', label:'Coxa', unit:'cm'}, {key:'braco', label:'Braço', unit:'cm'}],
+  state: { cur: 1, groups: {}, cols: {} },
+  saveTimer: null,
+  init: function() {
+    if (Chk.initialized) return;
+    var container = document.getElementById('modChk');
+    var dt = container.querySelector('#chk_data');
+    if (dt) dt.value = new Date().toISOString().split('T')[0];
+    Chk.buildMeds();
+    Chk.buildColIntensity();
+    Chk.bindChoices();
+    Chk.bindColaterais();
+    var fis = container.querySelectorAll('.fi');
+    for (var i = 0; i < fis.length; i++) {
+      fis[i].addEventListener('input', function() { Chk.updateNome(); Chk.saveDraft(); });
+    }
+    var backBtn = container.querySelector('#chk_btnBack');
+    var nextBtn = container.querySelector('#chk_btnNext');
+    if (backBtn) backBtn.addEventListener('click', function() { Chk.state.cur = Math.max(1, Chk.state.cur - 1); Chk.render(); });
+    if (nextBtn) nextBtn.addEventListener('click', function() { Chk.state.cur === Chk.TOTAL ? Chk.submit() : (Chk.state.cur++, Chk.render()); });
+    Chk.loadDraft();
+    Chk.render();
+    Chk.initialized = true;
+  },
+  buildMeds: function() {
+    var wrap = document.getElementById('chk_medRows');
+    if (!wrap) return;
+    var html = '';
+    for (var i = 0; i < Chk.MEDS.length; i++) {
+      var m = Chk.MEDS[i];
+      html += '<div class="med-row"><div class="med-name">' + m.label + '</div><input class="med-in" type="number" step="0.1" name="med_ini_' + m.key + '" placeholder="ini" oninput="Chk.calcDelta(\'' + m.key + '\')"><input class="med-in" type="number" step="0.1" name="med_' + m.key + '" placeholder="atual" oninput="Chk.calcDelta(\'' + m.key + '\')"><div class="med-unit">' + m.unit + '</div><div class="delta d-0" data-delta="' + m.key + '">—</div></div>';
+    }
+    wrap.innerHTML = html;
+  },
+  calcDelta: function(key) {
+    var container = document.getElementById('modChk');
+    var iniEl = container.querySelector('[name="med_ini_' + key + '"]');
+    var curEl = container.querySelector('[name="med_' + key + '"]');
+    if (!iniEl || !curEl) return;
+    var ini = parseFloat(iniEl.value);
+    var curV = parseFloat(curEl.value);
+    var el = container.querySelector('[data-delta="' + key + '"]');
+    if (!el) return;
+    if (isNaN(ini) || isNaN(curV)) { el.textContent = '—'; el.className = 'delta d-0'; return; }
+    var d = curV - ini;
+    el.textContent = (d > 0 ? '+' : '') + d.toFixed(1);
+    el.className = 'delta ' + (Math.abs(d) < 0.05 ? 'd-0' : (d > 0 ? 'd-n' : 'd-p'));
+  },
+  calcTemp: function() {
+    var container = document.getElementById('modChk');
+    var vals = [];
+    for (var i = 1; i <= 5; i++) {
+      var el = container.querySelector('[name="temp_d' + i + '"]');
+      if (el && !isNaN(parseFloat(el.value))) vals.push(parseFloat(el.value));
+    }
+    var mediaEl = container.querySelector('#chk_temp_media');
+    if (mediaEl) {
+      if (vals.length > 0) {
+        var sum = 0;
+        for (var j = 0; j < vals.length; j++) sum += vals[j];
+        mediaEl.value = (sum / vals.length).toFixed(2) + ' °C';
+      } else {
+        mediaEl.value = '';
+      }
+    }
+  },
+  bindChoices: function() {
+    var container = document.getElementById('modChk');
+    var choiceWraps = container.querySelectorAll('.choices');
+    for (var i = 0; i < choiceWraps.length; i++) {
+      (function(wrap) {
+        var grp = wrap.dataset.group;
+        var btns = wrap.querySelectorAll('.ch');
+        for (var j = 0; j < btns.length; j++) {
+          btns[j].addEventListener('click', function(e) {
+            var btn = e.currentTarget;
+            var allBtns = wrap.querySelectorAll('.ch');
+            for (var k = 0; k < allBtns.length; k++) allBtns[k].classList.remove('sel', 'sel-green', 'sel-amber', 'sel-red');
+            var t = btn.dataset.theme;
+            btn.classList.add(t === 'green' ? 'sel-green' : t === 'amber' ? 'sel-amber' : t === 'red' ? 'sel-red' : 'sel');
+            Chk.state.groups[grp] = btn.dataset.value;
+            Chk.saveDraft();
+          });
+        }
+      })(choiceWraps[i]);
+    }
+  },
+  buildColIntensity: function() {
+    var container = document.getElementById('modChk');
+    var intWraps = container.querySelectorAll('[data-col-int]');
+    for (var i = 0; i < intWraps.length; i++) {
+      (function(el) {
+        var html = '';
+        for (var j = 0; j < Chk.INTENSITY.length; j++) {
+          html += '<div class="int-btn" data-int="' + Chk.INTENSITY[j] + '">' + Chk.INTENSITY[j] + '</div>';
+        }
+        el.innerHTML = html;
+        var btns = el.querySelectorAll('.int-btn');
+        for (var k = 0; k < btns.length; k++) {
+          btns[k].addEventListener('click', function(e) {
+            e.stopPropagation();
+            var allBtns = el.querySelectorAll('.int-btn');
+            for (var m = 0; m < allBtns.length; m++) allBtns[m].classList.remove('sel');
+            var btn = e.currentTarget;
+            btn.classList.add('sel');
+            Chk.state.cols[el.dataset.colInt] = btn.dataset.int;
+            Chk.saveDraft();
+          });
+        }
+      })(intWraps[i]);
+    }
+  },
+  bindColaterais: function() {
+    var container = document.getElementById('modChk');
+    var items = container.querySelectorAll('.col-item');
+    for (var i = 0; i < items.length; i++) {
+      (function(item) {
+        var trigger = item.querySelector('.col-trigger');
+        var colName = item.dataset.col;
+        var noInt = item.dataset.noIntensity;
+        if (trigger) {
+          trigger.addEventListener('click', function() {
+            var isChecked = item.classList.contains('checked');
+            if (!isChecked) {
+              if (colName === 'Nenhum percebido') {
+                var others = container.querySelectorAll('.col-item:not([data-col="Nenhum percebido"])');
+                for (var j = 0; j < others.length; j++) {
+                  others[j].classList.remove('checked', 'open');
+                  delete Chk.state.cols[others[j].dataset.col];
+                }
+              } else {
+                var nenhum = container.querySelector('.col-item[data-col="Nenhum percebido"]');
+                if (nenhum) {
+                  nenhum.classList.remove('checked');
+                  delete Chk.state.cols['Nenhum percebido'];
+                }
+              }
+              item.classList.add('checked');
+              Chk.state.cols[colName] = noInt ? true : null;
+              if (!noInt) item.classList.toggle('open');
+            } else {
+              item.classList.remove('checked', 'open');
+              delete Chk.state.cols[colName];
+            }
+            Chk.saveDraft();
+          });
+        }
+      })(items[i]);
+    }
+  },
+  updateNome: function() {
+    var container = document.getElementById('modChk');
+    var nomeEl = container.querySelector('#chk_suc_nome');
+    var inputEl = container.querySelector('#chk_nome');
+    if (nomeEl && inputEl) nomeEl.textContent = inputEl.value.split(' ')[0] || '—';
+  },
+  render: function() {
+    var container = document.getElementById('modChk');
+    var steps = container.querySelectorAll('.step');
+    for (var i = 0; i < steps.length; i++) {
+      var s = steps[i];
+      if (parseInt(s.dataset.step) === Chk.state.cur) {
+        s.classList.add('active');
+      } else {
+        s.classList.remove('active');
+      }
+    }
+    var progFill = container.querySelector('#chk_prog_fill');
+    var frac = container.querySelector('#chk_frac');
+    var lbl = container.querySelector('#chk_lbl');
+    var backBtn = container.querySelector('#chk_btnBack');
+    var nextBtn = container.querySelector('#chk_btnNext');
+    if (progFill) progFill.style.width = ((Chk.state.cur / Chk.TOTAL) * 100) + '%';
+    if (frac) frac.textContent = Chk.state.cur + ' / ' + Chk.TOTAL;
+    if (lbl) lbl.textContent = Chk.LABELS[Chk.state.cur - 1];
+    if (backBtn) backBtn.disabled = Chk.state.cur === 1;
+    if (nextBtn) {
+      if (Chk.state.cur === Chk.TOTAL) {
+        nextBtn.textContent = 'Enviar Check-in';
+        nextBtn.classList.add('final');
+      } else {
+        nextBtn.textContent = 'Continuar';
+        nextBtn.classList.remove('final');
+      }
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  },
+  saveDraft: function() {
+    var container = document.getElementById('modChk');
+    var d = { groups: Chk.state.groups, cols: Chk.state.cols };
+    var names = container.querySelectorAll('[name]');
+    for (var i = 0; i < names.length; i++) d[names[i].name] = names[i].value;
+    try { localStorage.setItem(Chk.STORE, JSON.stringify(d)); } catch(e) {}
+    clearTimeout(Chk.saveTimer);
+    Chk.saveTimer = setTimeout(function() { Chk.toast('Salvo auto.'); }, 2000);
+  },
+  loadDraft: function() {
+    try {
+      var raw = localStorage.getItem(Chk.STORE);
+      if (!raw) return;
+      var d = JSON.parse(raw);
+      var container = document.getElementById('modChk');
+      var names = container.querySelectorAll('[name]');
+      for (var i = 0; i < names.length; i++) {
+        if (d[names[i].name] !== undefined) names[i].value = d[names[i].name];
+      }
+      if (d.groups) {
+        var groupKeys = Object.keys(d.groups);
+        for (var j = 0; j < groupKeys.length; j++) {
+          var grp = groupKeys[j];
+          var val = d.groups[grp];
+          var btn = container.querySelector('[data-group="' + grp + '"] .ch[data-value="' + CSS.escape(val) + '"]');
+          if (btn) { btn.classList.add('sel'); Chk.state.groups[grp] = val; }
+        }
+      }
+      if (d.cols) {
+        var colKeys = Object.keys(d.cols);
+        for (var k = 0; k < colKeys.length; k++) {
+          var colName = colKeys[k];
+          var intVal = d.cols[colName];
+          var item = container.querySelector('.col-item[data-col="' + CSS.escape(colName) + '"]');
+          if (item) {
+            item.classList.add('checked');
+            if (intVal && intVal !== true && intVal !== null) {
+              item.classList.add('open');
+              Chk.state.cols[colName] = intVal;
+              var intEl = item.querySelector('[data-col-int] [data-int="' + intVal + '"]');
+              if (intEl) {
+                var allInts = item.querySelectorAll('.int-btn');
+                for (var m = 0; m < allInts.length; m++) allInts[m].classList.remove('sel');
+                intEl.classList.add('sel');
+              }
+            } else {
+              Chk.state.cols[colName] = intVal;
+            }
+          }
+        }
+      }
+      for (var n = 0; n < Chk.MEDS.length; n++) Chk.calcDelta(Chk.MEDS[n].key);
+      Chk.calcTemp();
+      Chk.updateNome();
+    } catch(e) {}
+  },
+  clearDraft: function() {
+    if (!confirm('Começar do zero?')) return;
+    Chk.resetForm();
+    Chk.toast('Limpo.');
+  },
+  resetForm: function() {
+    try { localStorage.removeItem(Chk.STORE); } catch(e) {}
+    var container = document.getElementById('modChk');
+    var names = container.querySelectorAll('[name]');
+    for (var i = 0; i < names.length; i++) names[i].value = '';
+    var chs = container.querySelectorAll('.ch');
+    for (var j = 0; j < chs.length; j++) chs[j].classList.remove('sel', 'sel-green', 'sel-amber', 'sel-red');
+    var items = container.querySelectorAll('.col-item');
+    for (var k = 0; k < items.length; k++) items[k].classList.remove('checked', 'open');
+    var ints = container.querySelectorAll('.int-btn');
+    for (var m = 0; m < ints.length; m++) ints[m].classList.remove('sel');
+    var deltas = container.querySelectorAll('.delta');
+    for (var n = 0; n < deltas.length; n++) { deltas[n].textContent = '—'; deltas[n].className = 'delta d-0'; }
+    var tm = container.querySelector('#chk_temp_media');
+    if (tm) tm.value = '';
+    Chk.state.groups = {}; Chk.state.cols = {}; Chk.state.cur = 1;
+    var dt = container.querySelector('#chk_data');
+    if (dt) dt.value = new Date().toISOString().split('T')[0];
+    var suc = container.querySelector('#chk_success');
+    if (suc) suc.classList.remove('show');
+    Chk.render();
+  },
+  buildEmail: function(d) {
+    function v(k) { return d[k] || '—'; }
+    function med(k) {
+      var mObj = null;
+      for(var i=0; i<Chk.MEDS.length; i++) { if(Chk.MEDS[i].key === k) mObj = Chk.MEDS[i]; }
+      if(!mObj) return '';
+      var ini = d['med_ini_' + k] || '—';
+      var cur2 = d['med_' + k] || '—';
+      var el = document.getElementById('modChk').querySelector('[data-delta="' + k + '"]');
+      var dlt = el ? el.textContent : '—';
+      return "  " + mObj.label + " ini: " + ini + " atual: " + cur2 + " var: " + dlt;
+    }
+    var keys = Object.keys(Chk.state.cols);
+    var colText = 'Nenhum';
+    if (keys.length > 0) {
+      var arr = [];
+      for (var i = 0; i < keys.length; i++) {
+        var k = keys[i];
+        var val = Chk.state.cols[k];
+        if (val === true || val === null) arr.push(k);
+        else arr.push(k + " (" + val + ")");
+      }
+      colText = arr.join(' | ');
+    }
+    
+    var email = "CHECK-IN QUINZENAL\n==================\n";
+    email += "Nome: " + v('nome') + "\nEmail: " + v('email') + "\nData: " + v('data_envio') + "\nHumor: " + (Chk.state.groups['humor_geral'] || '—') + "\n\n";
+    email += "MEDIDAS\n-------\n";
+    for(var j=0; j<Chk.MEDS.length; j++) { email += med(Chk.MEDS[j].key) + "\n"; }
+    email += "Resp. Carbo Alto: " + (Chk.state.groups['carbo_sensacao'] || '—') + "\n\n";
+    email += "DIETA E INTESTINO\n-----------------\nAdesão: " + (Chk.state.groups['dieta_adesao'] || '—') + "\nRef. Fora: " + (Chk.state.groups['refeicoes_fora'] || '—') + "\nÁgua: " + (Chk.state.groups['agua'] || '—') + "\nFezes Freq.: " + (Chk.state.groups['int_freq'] || '—') + "\nFezes Cons.: " + (Chk.state.groups['int_cons'] || '—') + "\n\n";
+    email += "TREINO E SONO\n-------------\nFaltas: " + v('faltas') + "\nDesempenho: " + (Chk.state.groups['treino_perf'] || '—') + "\nAEJ Disp.: " + (Chk.state.groups['aerobico_jejum'] || '—') + "\nObs AEJ: " + v('aerobico_obs') + "\nPróx. Treino: " + v('treino_horario') + "\nSono Disp.: " + (Chk.state.groups['sono_disp'] || '—') + "\nAcorda noite: " + (Chk.state.groups['sono_acorda'] || '—') + "\nEstresse: " + (Chk.state.groups['stress'] || '—') + "\nLibido: " + (Chk.state.groups['libido'] || '—') + "\n\n";
+    email += "FINALIZAÇÃO\n-----------\nAparência: " + (Chk.state.groups['aparencia'] || '—') + "\nObs. Aparência: " + v('aparencia_desc') + "\nTemp. Basal: D1:" + v('temp_d1') + " D2:" + v('temp_d2') + " D3:" + v('temp_d3') + " D4:" + v('temp_d4') + " D5:" + v('temp_d5') + "\nMédia: " + v('temp_media') + "\nColaterais: " + colText + "\nObs. Colaterais: " + v('col_obs') + "\nFaltou algo: " + v('subst_faltou') + "\nUsou extra: " + v('subst_extra') + "\nComentários: " + v('comentarios');
+    return email;
+  },
+  submit: function() {
+    var container = document.getElementById('modChk');
+    var d = {};
+    var names = container.querySelectorAll('[name]');
+    for (var i = 0; i < names.length; i++) d[names[i].name] = names[i].value;
+    if (!d.nome) { Chk.toast('Nome obrigatório', 'err'); return; }
+    if (!d.email || d.email.indexOf('@') === -1) { Chk.toast('E-mail inválido.', 'err'); return; }
+    var btn = container.querySelector('#chk_btnNext');
+    btn.disabled = true;
+    btn.textContent = 'Enviando...';
+    
+    var payload = { access_key: W3F_KEY, subject: 'Check-in - ' + d.nome, from_name: d.nome, message: Chk.buildEmail(d) };
+    
+    fetch('https://api.web3forms.com/submit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    }).then(function(res) {
+      if (!res.ok) throw new Error('Network error');
+      return res.json();
+    }).then(function(data) {
+      var sucScreen = container.querySelector('#chk_success');
+      if (sucScreen) sucScreen.classList.add('show');
+      var secs = 4;
+      var cdEl = container.querySelector('#chk_countdown');
+      var cdInt = setInterval(function() {
+        secs--;
+        if (cdEl) cdEl.textContent = 'Voltando em ' + secs + 's...';
+        if (secs <= 0) clearInterval(cdInt);
+      }, 1000);
+      setTimeout(function() { clearInterval(cdInt); Chk.resetForm(); }, 4000);
+    }).catch(function(err) {
+      Chk.toast('Erro de conexão.', 'err');
+    }).finally(function() {
+      btn.disabled = false;
+      btn.textContent = 'Enviar Check-in';
+    });
+  },
+  toast: function(msg, type) {
+    var t = document.getElementById('chk_toast');
+    if (t) {
+      t.textContent = msg;
+      t.className = 'toast show ' + (type || '');
+      setTimeout(function() { t.classList.remove('show'); }, 3000);
+    }
+  }
+};
+
+/* Inicializa o Portal Assim que o HTML carregar */
+document.addEventListener('DOMContentLoaded', function() {
+  Portal.init();
+});
+</script>
+</body>
+</html>
