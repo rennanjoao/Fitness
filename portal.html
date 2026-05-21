@@ -87,6 +87,7 @@ textarea.fi{resize:none;min-height:80px;}
 .fi-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 .fi-row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
 
+/* Choices & Checks */
 .choices{display:flex;flex-wrap:wrap;gap:8px;}
 .choices.col{flex-direction:column;}
 .choices.g2{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
@@ -109,6 +110,9 @@ textarea.fi{resize:none;min-height:80px;}
 .btn-submit{width:100%;padding:17px;background:var(--crimson);color:#fff;border:none;border-radius:var(--r-sm);font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:all .2s;}
 .btn-submit:disabled{opacity:.5;}
 
+/* ════════════════════════════════════════
+   ESPECÍFICOS ANAMNESE
+════════════════════════════════════════ */
 .gender-wrap{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
 .gender-btn{padding:20px 16px;border-radius:var(--r-sm);border:1.5px solid var(--border2);background:var(--surf);cursor:pointer;text-align:center;font-family:'Cormorant Garamond',serif;font-size:1.2rem;font-weight:700;color:var(--sub);display:flex;flex-direction:column;align-items:center;gap:6px;}
 .gender-btn.sel-f{border-color:var(--crimson);background:var(--crimson-g);color:var(--text);}
@@ -117,6 +121,9 @@ textarea.fi{resize:none;min-height:80px;}
 input[type="range"]{flex:1;height:4px;accent-color:var(--crimson);cursor:pointer;padding:0;}
 .slider-val{font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:700;color:var(--crimson);width:28px;text-align:center;}
 
+/* ════════════════════════════════════════
+   ESPECÍFICOS CHECK-IN
+════════════════════════════════════════ */
 .step{display:none;}
 .step.active{display:flex;flex-direction:column;gap:18px;animation:fadeUp .3s ease;}
 @keyframes fadeUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
@@ -150,6 +157,9 @@ input[type="range"]{flex:1;height:4px;accent-color:var(--crimson);cursor:pointer
 .btn-next:disabled{opacity:.45;cursor:not-allowed;}
 .btn-next.final{background:linear-gradient(135deg,#B11226,#8B0D1C);}
 
+/* ════════════════════════════════════════
+   TELA SUCESSO & TOAST
+════════════════════════════════════════ */
 .success-screen{display:none;position:fixed;inset:0;z-index:900;background:var(--bg);flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:32px;}
 .success-screen.show{display:flex;animation:fadeIn .4s ease;}
 .suc-ring{width:88px;height:88px;border-radius:50%;border:1.5px solid var(--crimson);background:var(--crimson-g);display:flex;align-items:center;justify-content:center;font-size:2.2rem;}
@@ -175,13 +185,14 @@ input[type="range"]{flex:1;height:4px;accent-color:var(--crimson);cursor:pointer
   <div class="gate-sub">Digite o código de acesso fornecido pelo seu consultor.</div>
   <div class="gate-wrap">
     <div class="gate-lbl">Código de acesso</div>
-    <input class="gate-fi" type="password" id="gateInput" placeholder="••••••••" autocomplete="off" onkeydown="if(event.key==='Enter') Portal.checkGate()">
-    <button class="gate-btn" onclick="Portal.checkGate()">Acessar</button>
+    <input class="gate-fi" type="password" id="gateInput" placeholder="••••••••" autocomplete="off" onkeydown="if(event.key==='Enter') window.Portal.checkGate()">
+    <button class="gate-btn" onclick="window.Portal.checkGate()">Acessar</button>
     <div class="gate-err" id="gateErr"></div>
   </div>
 </div>
 
 <div id="modAna" class="module">
+
   <div id="ana_success" class="success-screen">
     <div class="suc-ring">✓</div>
     <div class="suc-title">Anamnese enviada</div>
@@ -191,7 +202,7 @@ input[type="range"]{flex:1;height:4px;accent-color:var(--crimson);cursor:pointer
 
   <div class="topbar">
     <div class="tb-brand">Anamnese</div>
-    <button class="tb-btn" onclick="Ana.clearAll()">Limpar</button>
+    <button class="tb-btn" onclick="window.Ana.clearAll()">Limpar</button>
   </div>
 
   <div class="prog-wrap">
@@ -226,8 +237,8 @@ input[type="range"]{flex:1;height:4px;accent-color:var(--crimson);cursor:pointer
         <div class="card-lbl">Gênero</div>
         <div class="card-body">
           <div class="gender-wrap">
-            <div class="gender-btn" id="ana_gBtnF" onclick="Ana.setGender('F')">♀ <span style="font-size:.72rem;">Feminino</span></div>
-            <div class="gender-btn" id="ana_gBtnM" onclick="Ana.setGender('M')">♂ <span style="font-size:.72rem;">Masculino</span></div>
+            <div class="gender-btn" id="ana_gBtnF" onclick="window.Ana.setGender('F')">♀ <span style="font-size:.72rem;">Feminino</span></div>
+            <div class="gender-btn" id="ana_gBtnM" onclick="window.Ana.setGender('M')">♂ <span style="font-size:.72rem;">Masculino</span></div>
           </div>
         </div>
       </div>
@@ -238,15 +249,15 @@ input[type="range"]{flex:1;height:4px;accent-color:var(--crimson);cursor:pointer
       <div class="card">
         <div class="card-body">
           <div class="fi-row3">
-            <div class="field"><div class="f-lbl">Altura (cm)</div><input class="fi" type="number" name="altura" placeholder="170" oninput="Ana.computeStats()"></div>
-            <div class="field"><div class="f-lbl">Peso (kg)</div><input class="fi" type="number" name="peso" step=".1" placeholder="70.0" oninput="Ana.computeStats()"></div>
+            <div class="field"><div class="f-lbl">Altura (cm)</div><input class="fi" type="number" name="altura" placeholder="170" oninput="window.Ana.computeStats()"></div>
+            <div class="field"><div class="f-lbl">Peso (kg)</div><input class="fi" type="number" name="peso" step=".1" placeholder="70.0" oninput="window.Ana.computeStats()"></div>
             <div class="field">
               <div class="f-lbl">% Gordura Estimado</div>
               <input class="fi" type="text" name="bf_estimado" id="ana_bf_est" readonly placeholder="Requer Alt. e Cintura" style="background:var(--bg); border-color:var(--border);">
             </div>
           </div>
           <div class="fi-row">
-            <div class="field"><div class="f-lbl">Cintura no umbigo (cm)</div><input class="fi" type="number" name="cintura" step=".1" placeholder="80" oninput="Ana.computeStats()"></div>
+            <div class="field"><div class="f-lbl">Cintura no umbigo (cm)</div><input class="fi" type="number" name="cintura" step=".1" placeholder="80" oninput="window.Ana.computeStats()"></div>
             <div class="field"><div class="f-lbl">Quadril (cm)</div><input class="fi" type="number" name="quadril" step=".1" placeholder="98"></div>
           </div>
           <div class="fi-row">
@@ -378,6 +389,21 @@ input[type="range"]{flex:1;height:4px;accent-color:var(--crimson);cursor:pointer
           <div class="field"><div class="f-lbl">Disponibilidade alimentar no dia</div><textarea class="fi" name="disponibilidade_alim" placeholder="Ex: Posso levar marmita"></textarea></div>
           <div class="field"><div class="f-lbl">Alergias / Intolerâncias</div><textarea class="fi" name="alergias" placeholder="Ex: Intolerante a lactose"></textarea></div>
           <div class="field"><div class="f-lbl">Relação com a comida / Histórico de dietas</div><textarea class="fi" name="rel_comida" placeholder="Descreva..."></textarea></div>
+          
+          <div class="fi-row" style="margin-top:8px;">
+            <div class="field">
+              <div class="f-lbl">Possui compulsão alimentar?</div>
+              <div class="choices g3" data-group="compulsao_estado">
+                <div class="ch" data-value="Não" data-theme="green">Não</div>
+                <div class="ch" data-value="Leve" data-theme="amber">Leve</div>
+                <div class="ch" data-value="Forte" data-theme="red">Forte</div>
+              </div>
+            </div>
+            <div class="field">
+              <div class="f-lbl">Horário de maior intensidade</div>
+              <input class="fi" type="text" name="compulsao_horario" placeholder="Ex: À noite, finais de semana...">
+            </div>
+          </div>
         </div>
       </div>
       <div class="card">
@@ -399,8 +425,8 @@ input[type="range"]{flex:1;height:4px;accent-color:var(--crimson);cursor:pointer
       <div class="card">
         <div class="card-body">
           <div class="fi-row">
-            <div class="field"><div class="f-lbl">Tempo para dormir</div><input class="fi" type="text" name="tempo_sono" placeholder="Ex: 20 min"></div>
-            <div class="field"><div class="f-lbl">Pico de cansaço</div><input class="fi" type="text" name="pico_cansaco" placeholder="Ex: 15h"></div>
+            <div class="field"><div class="f-lbl">Quanto tempo leva para pegar no sono?</div><input class="fi" type="text" name="tempo_sono" placeholder="Ex: ~20 minutos"></div>
+            <div class="field"><div class="f-lbl">Pico de cansaço durante o dia</div><input class="fi" type="text" name="pico_cansaco" placeholder="Ex: Por volta das 15h"></div>
           </div>
           <div class="field"><div class="f-lbl">Acorda descansado?</div>
             <div class="choices g3" data-group="acorda_descansado">
@@ -433,11 +459,17 @@ input[type="range"]{flex:1;height:4px;accent-color:var(--crimson);cursor:pointer
               <div class="ch" data-value="Regular" data-theme="green">Regular</div><div class="ch" data-value="Irregular" data-theme="amber">Irregular</div><div class="ch" data-value="Ausente">Ausente</div>
             </div>
           </div>
-          <div class="field"><div class="f-lbl">Sintomas TPM</div>
+          <div class="field"><div class="f-lbl">Sintomas de TPM</div>
             <div class="checks" id="ana_tpmChecks">
-              <div class="ck" data-val="Inchaço"><div class="ck-box">✓</div>Inchaço</div><div class="ck" data-val="Oscilação de humor"><div class="ck-box">✓</div>Oscilação humor</div>
-              <div class="ck" data-val="Cólicas"><div class="ck-box">✓</div>Cólicas</div><div class="ck" data-val="Fadiga"><div class="ck-box">✓</div>Fadiga</div>
-              <div class="ck" data-val="Insônia"><div class="ck-box">✓</div>Insônia</div><div class="ck" data-val="Ansiedade"><div class="ck-box">✓</div>Ansiedade</div>
+              <div class="ck" data-val="Inchaço"><div class="ck-box">✓</div>Inchaço</div>
+              <div class="ck" data-val="Oscilação de humor"><div class="ck-box">✓</div>Humor</div>
+              <div class="ck" data-val="Cólicas"><div class="ck-box">✓</div>Cólicas</div>
+              <div class="ck" data-val="Fadiga"><div class="ck-box">✓</div>Fadiga</div>
+              <div class="ck" data-val="Insônia"><div class="ck-box">✓</div>Insônia</div>
+              <div class="ck" data-val="Ansiedade"><div class="ck-box">✓</div>Ansiedade</div>
+              <div class="ck" data-val="Enxaqueca"><div class="ck-box">✓</div>Enxaqueca</div>
+              <div class="ck" data-val="Diarreia"><div class="ck-box">✓</div>Diarreia</div>
+              <div class="ck" data-val="Compulsão alimentar"><div class="ck-box">✓</div>Compulsão</div>
               <div class="ck" data-val="Sem sintomas" data-solo="1"><div class="ck-box">✓</div>Sem sintomas</div>
             </div>
           </div>
@@ -512,7 +544,7 @@ input[type="range"]{flex:1;height:4px;accent-color:var(--crimson);cursor:pointer
     </div>
 
     <div class="submit-wrap" style="margin-top:40px;">
-      <button class="btn-submit" id="ana_btnSubmit" onclick="Ana.submitForm()">Enviar Anamnese</button>
+      <button class="btn-submit" id="ana_btnSubmit" onclick="window.Ana.submitForm()">Enviar Anamnese</button>
     </div>
   </div>
   <div class="toast" id="ana_toast"></div>
@@ -525,12 +557,12 @@ input[type="range"]{flex:1;height:4px;accent-color:var(--crimson);cursor:pointer
     <div class="suc-title">Check-in enviado</div>
     <div class="suc-sub">Obrigada, <span id="chk_suc_nome" style="color:var(--crimson);font-weight:bold;"></span>. Retorno em breve.</div>
     <div style="font-size:.75rem;color:var(--muted);margin-top:4px;" id="chk_countdown">Voltando ao início em 4s…</div>
-    <button class="btn-novo" onclick="Chk.resetForm()">Iniciar novo agora</button>
+    <button class="btn-novo" onclick="window.Chk.resetForm()">Iniciar novo agora</button>
   </div>
 
   <div class="topbar">
     <div class="tb-brand">Check‑in</div>
-    <button class="tb-btn" onclick="Chk.clearDraft()">Limpar</button>
+    <button class="tb-btn" onclick="window.Chk.clearDraft()">Limpar</button>
   </div>
 
   <div class="prog-wrap">
@@ -594,6 +626,26 @@ input[type="range"]{flex:1;height:4px;accent-color:var(--crimson);cursor:pointer
           </div>
         </div>
       </div>
+      
+      <div class="card" style="margin-top:14px;">
+        <div class="card-lbl">Compulsão Alimentar</div>
+        <div class="card-body">
+          <div class="field">
+            <div class="f-lbl">Como estão os episódios de compulsão?</div>
+            <div class="choices g2" data-group="chk_compulsao_estado">
+              <div class="ch" data-value="Nenhum" data-theme="green">Nenhum</div>
+              <div class="ch" data-value="Melhorou" data-theme="green">Melhorou</div>
+              <div class="ch" data-value="Igual" data-theme="amber">Igual</div>
+              <div class="ch" data-value="Piorou" data-theme="red">Piorou</div>
+            </div>
+          </div>
+          <div class="field">
+            <div class="f-lbl">Intensidade e horário/gatilho (se houver)</div>
+            <input class="fi" type="text" name="chk_compulsao_detalhes" placeholder="Ex: Ansiedade à noite...">
+          </div>
+        </div>
+      </div>
+
       <div class="card" style="margin-top:14px;">
         <div class="card-lbl">Intestino</div>
         <div class="card-body">
@@ -666,11 +718,11 @@ input[type="range"]{flex:1;height:4px;accent-color:var(--crimson);cursor:pointer
         <div class="card-lbl">Temperatura Basal (°C)</div>
         <div class="card-body">
           <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;">
-            <input class="fi" style="padding:10px 4px;text-align:center;" type="number" step="0.01" name="temp_d1" placeholder="D1" oninput="Chk.calcTemp()">
-            <input class="fi" style="padding:10px 4px;text-align:center;" type="number" step="0.01" name="temp_d2" placeholder="D2" oninput="Chk.calcTemp()">
-            <input class="fi" style="padding:10px 4px;text-align:center;" type="number" step="0.01" name="temp_d3" placeholder="D3" oninput="Chk.calcTemp()">
-            <input class="fi" style="padding:10px 4px;text-align:center;" type="number" step="0.01" name="temp_d4" placeholder="D4" oninput="Chk.calcTemp()">
-            <input class="fi" style="padding:10px 4px;text-align:center;" type="number" step="0.01" name="temp_d5" placeholder="D5" oninput="Chk.calcTemp()">
+            <input class="fi" style="padding:10px 4px;text-align:center;" type="number" step="0.01" name="temp_d1" placeholder="D1" oninput="window.Chk.calcTemp()">
+            <input class="fi" style="padding:10px 4px;text-align:center;" type="number" step="0.01" name="temp_d2" placeholder="D2" oninput="window.Chk.calcTemp()">
+            <input class="fi" style="padding:10px 4px;text-align:center;" type="number" step="0.01" name="temp_d3" placeholder="D3" oninput="window.Chk.calcTemp()">
+            <input class="fi" style="padding:10px 4px;text-align:center;" type="number" step="0.01" name="temp_d4" placeholder="D4" oninput="window.Chk.calcTemp()">
+            <input class="fi" style="padding:10px 4px;text-align:center;" type="number" step="0.01" name="temp_d5" placeholder="D5" oninput="window.Chk.calcTemp()">
           </div>
           <div class="field" style="margin-top:10px;"><div class="f-lbl">Média</div><input class="fi" type="text" id="chk_temp_media" readonly placeholder="Calculado auto." style="color:var(--crimson);font-weight:600;"></div>
         </div>
@@ -774,7 +826,7 @@ var Portal = {
 ═══════════════════════════════════════════════════════════════════════ */
 var Ana = {
   initialized: false,
-  STORE: 'ana_data_v4',
+  STORE: 'ana_data_v5',
   state: { groups: {}, gender: '', tpm: [], quedaF: [] },
   saveTimer: null,
   SLIDERS: [
@@ -1012,8 +1064,8 @@ var Ana = {
     email += "ROTINA\n------\nProfissão: " + v('profissao') + "\nEstudos: " + v('estudos') + "\nDorme: " + v('horario_dormir') + "\nAcorda: " + v('horario_acordar') + "\n\n";
     email += "TREINAMENTO\n-----------\nAnos treino: " + v('anos_treino') + "\nNível: " + gr('nivel_treino') + "\nAtuais: " + v('atividades') + "\nHorários: " + v('horarios_treino') + "\nDias/sem: " + v('dias_treino') + "\nDuração: " + v('duracao_sessao') + "\nAcademia: " + gr('tem_academia') + "\nEquipamentos: " + v('equipamentos') + "\nDescanso: " + v('descanso_treino') + "\nPeriodiza: " + gr('periodiza') + "\nEstagnação: " + gr('estagnacao') + "\nPump: " + gr('pump') + "\nLesões: " + v('lesoes') + "\n\n";
     email += "SUBSTÂNCIAS\n-----------\nRemédios: " + v('remedios') + "\nDrogas: " + v('drogas') + "\nHormônios: " + v('hormonios') + "\nEstimulantes: " + v('estimulantes') + "\nSuplementos: " + v('suplementacao') + "\n\n";
-    email += "DIETA E TGI\n-----------\nÁgua/dia: " + gr('hidratacao') + "\nRecordat.: " + v('recordatorio') + "\nDisp. Alim.: " + v('disponibilidade_alim') + "\nAlergias: " + v('alergias') + "\nRel. Comida: " + v('rel_comida') + "\nFezes: " + gr('fezes') + "\nGastrico: " + v('gastrico') + "\nObs Intestino: " + v('obs_fezes') + "\n\n";
-    email += "SONO\n----\nTempo: " + v('tempo_sono') + "\nCansaço: " + v('pico_cansaco') + "\nAcorda desc: " + gr('acorda_descansado') + "\nAcorda noite: " + v('acorda_noite') + "\nSintomas not: " + v('sintomas_noturnos') + "\nHRV: " + v('hrv') + "\n\n";
+    email += "DIETA E TGI\n-----------\nÁgua/dia: " + gr('hidratacao') + "\nRecordat.: " + v('recordatorio') + "\nDisp. Alim.: " + v('disponibilidade_alim') + "\nAlergias: " + v('alergias') + "\nRel. Comida: " + v('rel_comida') + "\nCompulsão: " + gr('compulsao_estado') + "\nHorário: " + v('compulsao_horario') + "\nFezes: " + gr('fezes') + "\nGastrico: " + v('gastrico') + "\nObs Intestino: " + v('obs_fezes') + "\n\n";
+    email += "SONO\n----\nTempo adormecer: " + v('tempo_sono') + "\nCansaço: " + v('pico_cansaco') + "\nAcorda desc: " + gr('acorda_descansado') + "\nAcorda noite: " + v('acorda_noite') + "\nSintomas not: " + v('sintomas_noturnos') + "\nHRV: " + v('hrv') + "\n\n";
     email += "NEURO\n-----\nMotivação: " + sl('neuro_motivacao') + "\nConcentração: " + sl('neuro_concentracao') + "\nMemória: " + sl('neuro_memoria_curto') + "\nAprendizado: " + sl('neuro_aprendizado') + "\nLibido: " + sl('neuro_libido') + "\nPrazer: " + sl('neuro_prazer') + "\nSocial: " + sl('neuro_social') + "\nFluência: " + sl('neuro_fluencia') + "\nObs. Neuro: " + v('obs_neuro') + "\n\n";
     email += "SAÚDE " + (Ana.state.gender === 'F' ? 'FEMININA' : 'MASCULINA') + "\n---------------\n";
     if (Ana.state.gender === 'F') {
@@ -1072,7 +1124,7 @@ var Ana = {
 ═══════════════════════════════════════════════════════════════════════ */
 var Chk = {
   initialized: false,
-  STORE: 'chk_data_v4',
+  STORE: 'chk_data_v5',
   TOTAL: 5,
   LABELS: ['Identificação','Medidas','Dieta e Saúde','Treino & Sono','Finalização'],
   INTENSITY: ['Mínima','Baixa','Moderada','Intensa'],
@@ -1106,7 +1158,7 @@ var Chk = {
     var html = '';
     for (var i = 0; i < Chk.MEDS.length; i++) {
       var m = Chk.MEDS[i];
-      html += '<div class="med-row"><div class="med-name">' + m.label + '</div><input class="med-in" type="number" step="0.1" name="med_ini_' + m.key + '" placeholder="ini" oninput="Chk.calcDelta(\'' + m.key + '\')"><input class="med-in" type="number" step="0.1" name="med_' + m.key + '" placeholder="atual" oninput="Chk.calcDelta(\'' + m.key + '\')"><div class="med-unit">' + m.unit + '</div><div class="delta d-0" data-delta="' + m.key + '">—</div></div>';
+      html += '<div class="med-row"><div class="med-name">' + m.label + '</div><input class="med-in" type="number" step="0.1" name="med_ini_' + m.key + '" placeholder="ini" oninput="window.Chk.calcDelta(\'' + m.key + '\')"><input class="med-in" type="number" step="0.1" name="med_' + m.key + '" placeholder="atual" oninput="window.Chk.calcDelta(\'' + m.key + '\')"><div class="med-unit">' + m.unit + '</div><div class="delta d-0" data-delta="' + m.key + '">—</div></div>';
     }
     wrap.innerHTML = html;
   },
@@ -1376,7 +1428,7 @@ var Chk = {
     email += "MEDIDAS\n-------\n";
     for(var j=0; j<Chk.MEDS.length; j++) { email += med(Chk.MEDS[j].key) + "\n"; }
     email += "Resp. Carbo Alto: " + (Chk.state.groups['carbo_sensacao'] || '—') + "\n\n";
-    email += "DIETA E INTESTINO\n-----------------\nAdesão: " + (Chk.state.groups['dieta_adesao'] || '—') + "\nRef. Fora: " + (Chk.state.groups['refeicoes_fora'] || '—') + "\nÁgua: " + (Chk.state.groups['agua'] || '—') + "\nFezes Freq.: " + (Chk.state.groups['int_freq'] || '—') + "\nFezes Cons.: " + (Chk.state.groups['int_cons'] || '—') + "\n\n";
+    email += "DIETA E INTESTINO\n-----------------\nAdesão: " + (Chk.state.groups['dieta_adesao'] || '—') + "\nRef. Fora: " + (Chk.state.groups['refeicoes_fora'] || '—') + "\nÁgua: " + (Chk.state.groups['agua'] || '—') + "\nCompulsão: " + (Chk.state.groups['chk_compulsao_estado'] || '—') + "\nDet. Compulsão: " + v('chk_compulsao_detalhes') + "\nFezes Freq.: " + (Chk.state.groups['int_freq'] || '—') + "\nFezes Cons.: " + (Chk.state.groups['int_cons'] || '—') + "\n\n";
     email += "TREINO E SONO\n-------------\nFaltas: " + v('faltas') + "\nDesempenho: " + (Chk.state.groups['treino_perf'] || '—') + "\nAEJ Disp.: " + (Chk.state.groups['aerobico_jejum'] || '—') + "\nObs AEJ: " + v('aerobico_obs') + "\nPróx. Treino: " + v('treino_horario') + "\nSono Disp.: " + (Chk.state.groups['sono_disp'] || '—') + "\nAcorda noite: " + (Chk.state.groups['sono_acorda'] || '—') + "\nEstresse: " + (Chk.state.groups['stress'] || '—') + "\nLibido: " + (Chk.state.groups['libido'] || '—') + "\n\n";
     email += "FINALIZAÇÃO\n-----------\nAparência: " + (Chk.state.groups['aparencia'] || '—') + "\nObs. Aparência: " + v('aparencia_desc') + "\nTemp. Basal: D1:" + v('temp_d1') + " D2:" + v('temp_d2') + " D3:" + v('temp_d3') + " D4:" + v('temp_d4') + " D5:" + v('temp_d5') + "\nMédia: " + v('temp_media') + "\nColaterais: " + colText + "\nObs. Colaterais: " + v('col_obs') + "\nFaltou algo: " + v('subst_faltou') + "\nUsou extra: " + v('subst_extra') + "\nComentários: " + v('comentarios');
     return email;
@@ -1431,7 +1483,7 @@ var Chk = {
 
 /* Inicializa o Portal Assim que o HTML carregar */
 document.addEventListener('DOMContentLoaded', function() {
-  Portal.init();
+  window.Portal.init();
 });
 </script>
 </body>
