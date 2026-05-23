@@ -34,6 +34,29 @@
       -webkit-tap-highlight-color: transparent;
     }
 
+    /* TELA DE LOGIN */
+    #loginScreen {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100vh;
+      background: var(--bg); display: flex; align-items: center; justify-content: center;
+      z-index: 9999; padding: 1.5rem; transition: background 0.3s ease;
+    }
+    .login-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 20px;
+      padding: 3rem 2rem; width: 100%; max-width: 420px; text-align: center;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5); animation: scaleIn 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .login-card h2 { font-size: 1.8rem; margin-bottom: 0.5rem; color: var(--text); }
+    .login-card p { color: var(--text-secondary); margin-bottom: 2rem; font-size: 0.95rem; }
+    .login-card input {
+      width: 100%; padding: 1.2rem; background: var(--bg); border: 2px solid var(--border);
+      border-radius: 12px; color: var(--text); font-size: 16px; margin-bottom: 1rem;
+      text-align: center; transition: all 0.3s ease; text-transform: uppercase; font-weight: bold;
+      letter-spacing: 2px;
+    }
+    .login-card input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(200, 29, 29, 0.1); }
+    .error-msg { color: var(--primary-light); font-size: 0.9rem; margin-top: 1rem; font-weight: 600; display: none; animation: fadeIn 0.3s ease; }
+    #mainContent { display: none; animation: fadeIn 0.5s ease; }
+
     /* HEADER */
     .header {
       background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
@@ -53,6 +76,7 @@
     .header h1 { font-size: 2.8rem; font-weight: 700; margin-bottom: 0.75rem; animation: fadeInDown 0.6s ease; color: white; }
     .header p { font-size: 1.2rem; opacity: 0.95; animation: fadeInUp 0.6s ease; color: white; }
 
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     @keyframes fadeInDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes slideIn { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
@@ -206,7 +230,7 @@
     .shop-item-left input[type="checkbox"] { width: 20px; height: 20px; cursor: pointer; accent-color: var(--primary); }
     .shop-item-left label { cursor: pointer; font-size: 0.95rem; font-weight: 500;}
     
-    .freq-select { padding: 0.4rem; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font-family: monospace; font-size: 16px; outline: none; } /* font-size 16px previne zoom no iOS */
+    .freq-select { padding: 0.4rem; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font-family: monospace; font-size: 16px; outline: none; }
     .freq-select:focus { border-color: var(--primary); }
     
     .shopping-result { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color: white; padding: 2rem; border-radius: 16px; margin-top: 2rem; box-shadow: 0 8px 24px rgba(200, 29, 29, 0.3); }
@@ -215,7 +239,7 @@
     /* CALCULADORA (FORM) */
     .form-group { margin-bottom: 1.5rem; }
     .form-group label { display: block; margin-bottom: 0.75rem; color: var(--text-secondary); font-weight: 600; font-size: 0.95rem; }
-    .form-group input, .form-group select { width: 100%; padding: 1rem; background: var(--bg); border: 2px solid var(--border); border-radius: 12px; color: var(--text); font-size: 16px; transition: all 0.3s ease; } /* font-size 16px previne zoom no iOS */
+    .form-group input, .form-group select { width: 100%; padding: 1rem; background: var(--bg); border: 2px solid var(--border); border-radius: 12px; color: var(--text); font-size: 16px; transition: all 0.3s ease; }
     .form-group input:focus, .form-group select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(200, 29, 29, 0.1); }
     .suggestions { background: var(--bg); border: 2px solid var(--border); border-top: 0; border-radius: 0 0 12px 12px; max-height: 200px; overflow-y: auto; }
     .suggestion-item { padding: 1rem; cursor: pointer; transition: all 0.2s ease; border-bottom: 1px solid var(--border); }
@@ -246,365 +270,381 @@
 </head>
 <body data-theme="dark">
 
-  <div class="header">
-    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Alternar tema">
-      <span id="themeIcon">🌙</span>
-    </button>
-    <h1>💪 Recomposição Corporal</h1>
-    <p>Ana Paula Cordeiro - Planejamento Estratégico</p>
+  <!-- TELA DE LOGIN -->
+  <div id="loginScreen">
+    <div class="login-card">
+      <div style="font-size: 3rem; margin-bottom: 1rem;">🔒</div>
+      <h2>Acesso Restrito</h2>
+      <p>Insira seu código de acesso para visualizar o planejamento estratégico.</p>
+      <input type="password" id="accessCode" placeholder="CÓDIGO DE ACESSO" onkeypress="handleLoginEnter(event)">
+      <button class="btn" onclick="verifyCode()">Acessar Protocolo</button>
+      <div id="loginError" class="error-msg">Código incorreto. Tente novamente.</div>
+    </div>
   </div>
 
-  <div class="stats-grid">
-    <div class="stat-card"><div class="stat-label">Idade</div><div class="stat-value" contenteditable="true">42</div></div>
-    <div class="stat-card"><div class="stat-label">Meta</div><div class="stat-value" contenteditable="true">Hipertrofia</div></div>
-    <div class="stat-card"><div class="stat-label">Dieta Base</div><div class="stat-value" contenteditable="true">2450 kcal</div></div>
-    <div class="stat-card"><div class="stat-label">Hidratação</div><div class="stat-value" contenteditable="true">4–5 L</div></div>
-    <div class="stat-card"><div class="stat-label">Divisão</div><div class="stat-value">4×/sem</div></div>
-  </div>
+  <!-- CONTEÚDO PRINCIPAL (Fica oculto até a validação do código) -->
+  <div id="mainContent">
+    <div class="header">
+      <button class="theme-toggle" onclick="toggleTheme()" aria-label="Alternar tema">
+        <span id="themeIcon">🌙</span>
+      </button>
+      <h1>💪 Recomposição Corporal</h1>
+      <p>Ana Paula Cordeiro - Planejamento Estratégico</p>
+    </div>
 
-  <div class="container">
-    <section class="section">
-      <h2 class="section-title">🛠️ Ferramentas Rápidas</h2>
-      <div class="tools-grid">
-        <div class="tool-card" onclick="openModal('workout')">
-          <div class="tool-icon">🏋️</div>
-          <h3>Treino Biomecânico</h3>
-          <p>Plano Feminino (A, B, C, D)</p>
-        </div>
-        <div class="tool-card" onclick="openModal('suplementos')">
-          <div class="tool-icon">💊</div>
-          <h3>Suplementação</h3>
-          <p>Fórmulas Diurnas e Noturnas</p>
-        </div>
-        <div class="tool-card" onclick="openModal('calendar')">
-          <div class="tool-icon">📅</div>
-          <h3>Planejamento Semanal</h3>
-          <p>Visão do ciclo de carboidratos</p>
-        </div>
-        <div class="tool-card" onclick="openModal('shopping')">
-          <div class="tool-icon">🛒</div>
-          <h3>Lista de Compras</h3>
-          <p>Gerador Inteligente em TXT</p>
-        </div>
-        <div class="tool-card" onclick="openModal('carnes')">
-          <div class="tool-icon">🥩</div>
-          <h3>Dicas: Carnes</h3>
-          <p>Seleção de Magras e Gordas</p>
-        </div>
-        <div class="tool-card" onclick="openModal('vegetais')">
-          <div class="tool-icon">🥬</div>
-          <h3>Dicas de FODMAPs</h3>
-          <p>Gestão de FODMAPs</p>
-        </div>
-        <div class="tool-card" onclick="openModal('calc')">
-          <div class="tool-icon">🧮</div>
-          <h3>Calculadora TACO+</h3>
-          <p>Substitua alimentos exatos</p>
-        </div>
-      </div>
-    </section>
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-label">Idade</div><div class="stat-value" contenteditable="true">42</div></div>
+      <div class="stat-card"><div class="stat-label">Meta</div><div class="stat-value" contenteditable="true">Hipertrofia</div></div>
+      <div class="stat-card"><div class="stat-label">Dieta Base</div><div class="stat-value" contenteditable="true">2450 kcal</div></div>
+      <div class="stat-card"><div class="stat-label">Hidratação</div><div class="stat-value" contenteditable="true">4–5 L</div></div>
+      <div class="stat-card"><div class="stat-label">Divisão</div><div class="stat-value">4×/sem</div></div>
+    </div>
 
-    <section class="section">
-      <h2 class="section-title">🍽️ Plano Alimentar</h2>
-      
-      <div class="tabs">
-        <button class="tab active" onclick="showMeal(1, event)">Refeição 1</button>
-        <button class="tab" onclick="showMeal(2, event)">Refeição 2</button>
-        <button class="tab" onclick="showMeal(3, event)">Refeição 3</button>
-        <button class="tab" onclick="showMeal(4, event)">Refeição 4 (Jantar)</button>
-        <button class="tab" style="background: rgba(200,29,29,0.1); border-color: var(--primary); color: var(--primary);" onclick="showMeal('strategy', event)">🔥 Directrizes</button>
-      </div>
-
-      <div class="meal-card active" id="meal1">
-        <div class="card">
-          <div class="meal-header">
-            <h3 class="meal-title">Refeição 1 (10:00 da Manhã)</h3>
-            <span class="meal-badge">Abertura</span>
+    <div class="container">
+      <section class="section">
+        <h2 class="section-title">🛠️ Ferramentas Rápidas</h2>
+        <div class="tools-grid">
+          <div class="tool-card" onclick="openModal('workout')">
+            <div class="tool-icon">🏋️</div>
+            <h3>Treino Biomecânico</h3>
+            <p>Plano Feminino (A, B, C, D)</p>
           </div>
-          <ul class="food-list" contenteditable="true">
-            <li class="food-item">
-              <div class="food-item-header">
-                <div class="food-icon" contenteditable="false">🥚</div>
-                <div><span class="base-label">Proteína</span><br><strong>2 ovos inteiros + 2 claras mexidas</strong> — Fritos com mínimo de azeite/manteiga ghee</div>
-              </div>
-            </li>
-            <li class="food-item">
-              <div class="food-item-header">
-                <div class="food-icon" contenteditable="false">🥞</div>
-                <div><span class="base-label">Carbo Principal</span><br><strong>80g Tapioca Média</strong> OU <strong>40g Creme de Arroz/Aveia</strong></div>
-              </div>
-            </li>
-            <li class="food-item">
-              <div class="food-item-header">
-                <div class="food-icon" contenteditable="false">🍌</div>
-                <div><span class="base-label">Carbo Fruta</span><br><strong>100g Banana ou Mamão + 15g Aveia em flocos por cima</strong></div>
-              </div>
-            </li>
-            <li class="food-item">
-              <div class="food-item-header">
-                <div class="food-icon" contenteditable="false">☕</div>
-                <div><span class="base-label">Acompanhamento</span><br><strong>Café preto puro (sem açúcar) + Canela</strong></div>
-              </div>
-            </li>
-          </ul>
+          <div class="tool-card" onclick="openModal('suplementos')">
+            <div class="tool-icon">💊</div>
+            <h3>Suplementação</h3>
+            <p>Fórmulas Diurnas e Noturnas</p>
+          </div>
+          <div class="tool-card" onclick="openModal('calendar')">
+            <div class="tool-icon">📅</div>
+            <h3>Planejamento Semanal</h3>
+            <p>Visão do ciclo de carboidratos</p>
+          </div>
+          <div class="tool-card" onclick="openModal('shopping')">
+            <div class="tool-icon">🛒</div>
+            <h3>Lista de Compras</h3>
+            <p>Gerador Inteligente em TXT</p>
+          </div>
+          <div class="tool-card" onclick="openModal('carnes')">
+            <div class="tool-icon">🥩</div>
+            <h3>Dicas: Carnes</h3>
+            <p>Seleção de Magras e Gordas</p>
+          </div>
+          <div class="tool-card" onclick="openModal('vegetais')">
+            <div class="tool-icon">🥬</div>
+            <h3>Dicas de FODMAPs</h3>
+            <p>Gestão de FODMAPs</p>
+          </div>
+          <div class="tool-card" onclick="openModal('calc')">
+            <div class="tool-icon">🧮</div>
+            <h3>Calculadora TACO+</h3>
+            <p>Substitua alimentos exatos</p>
+          </div>
         </div>
-      </div>
+      </section>
 
-      <div class="meal-card" id="meal2">
-        <div class="card">
-          <div class="meal-header">
-            <h3 class="meal-title">Almoço</h3>
-            <div class="meal-actions">
-              <button class="act-btn" onclick="togglePeso(this,'card2')">⚖️ Cru/Pronto</button>
-              <button class="act-btn active" onclick="setCarbo(this,'base','card2')">⏺️ Base</button>
-              <button class="act-btn alto" onclick="setCarbo(this,'alto','card2')">⬆️ Alto</button>
-              <button class="act-btn baixo" onclick="setCarbo(this,'baixo','card2')">⬇️ Baixo</button>
+      <section class="section">
+        <h2 class="section-title">🍽️ Plano Alimentar</h2>
+        
+        <div class="tabs">
+          <button class="tab active" onclick="showMeal(1, event)">Refeição 1</button>
+          <button class="tab" onclick="showMeal(2, event)">Refeição 2</button>
+          <button class="tab" onclick="showMeal(3, event)">Refeição 3</button>
+          <button class="tab" onclick="showMeal(4, event)">Refeição 4 (Jantar)</button>
+          <button class="tab" style="background: rgba(200,29,29,0.1); border-color: var(--primary); color: var(--primary);" onclick="showMeal('strategy', event)">🔥 Directrizes</button>
+        </div>
+
+        <div class="meal-card active" id="meal1">
+          <div class="card">
+            <div class="meal-header">
+              <h3 class="meal-title">Refeição 1 (10:00 da Manhã)</h3>
+              <span class="meal-badge">Abertura</span>
             </div>
-          </div>
-          <div class="subsection" id="card2" contenteditable="true">
-            <ul class="food-list">
+            <ul class="food-list" contenteditable="true">
               <li class="food-item">
                 <div class="food-item-header">
-                  <div class="food-icon" contenteditable="false" style="background: #3498db;">🥩</div>
-                  <div style="width: 100%;">
-                    <span class="base-label">PROTEÍNA MAGRA</span><br> 
-                    <strong class="peso-cru">100g (CRU)</strong><strong class="peso-pronto">~70g (PRONTO)</strong> da proteína escolhida.<br>
-                    <span class="food-amount">Foco: Peito de Frango, Patinho, Coxa c/ Sobrecoxa s/ pele ou Tilápia.</span>
-                  </div>
+                  <div class="food-icon" contenteditable="false">🥚</div>
+                  <div><span class="base-label">Proteína</span><br><strong>2 ovos inteiros + 2 claras mexidas</strong> — Fritos com mínimo de azeite/manteiga ghee</div>
                 </div>
               </li>
               <li class="food-item">
                 <div class="food-item-header">
-                  <div class="food-icon" contenteditable="false" style="background: var(--carb-high);">🍚</div>
-                  <div style="width: 100%;">
-                    <span class="base-label">CARBOIDRATO (Escolha 1)</span><br>
-                    <ul class="food-options-list" style="margin-top: 0.5rem; list-style:none; padding-left:0;">
-                      <li style="color: var(--carb-high);"><strong>🔥 MELHORES:</strong><br> 
-                        <span class="peso-cru val-carbo" data-base="120g" data-alto="150g" data-baixo="85g">120g</span><span class="peso-pronto val-carbo" data-base="~360g" data-alto="~450g" data-baixo="~255g">~360g</span> Arroz Parboilizado + 100g Vegetais Verdes <strong>OU</strong><br> 
-                        <span class="peso-cru val-carbo" data-base="290g" data-alto="360g" data-baixo="200g">290g</span><span class="peso-pronto val-carbo" data-base="~290g" data-alto="~360g" data-baixo="~200g">~290g</span> Mandioca <strong>OU</strong><br> 
-                        <span class="peso-cru val-carbo" data-base="400g" data-alto="500g" data-baixo="280g">400g</span><span class="peso-pronto val-carbo" data-base="~400g" data-alto="~500g" data-baixo="~280g">~400g</span> Batata Doce/Cará <strong>OU</strong><br> 
-                        <span class="peso-cru val-carbo" data-base="75g" data-alto="95g" data-baixo="50g">75g</span><span class="peso-pronto val-carbo" data-base="~225g" data-alto="~285g" data-baixo="~150g">~225g</span> Arroz Parb. + <span class="peso-cru val-carbo" data-base="150g" data-alto="190g" data-baixo="105g">150g</span><span class="peso-pronto val-carbo" data-base="~150g" data-alto="~190g" data-baixo="~105g">~150g</span> Batata Doce.
-                      </li>
-                      <li style="color: var(--carb-low); margin-top:0.5rem;"><strong>⚡ SECUNDÁRIAS:</strong><br> 
-                        <span class="peso-cru val-carbo" data-base="90g" data-alto="110g" data-baixo="60g">90g</span><span class="peso-pronto val-carbo" data-base="~270g" data-alto="~330g" data-baixo="~180g">~270g</span> Arroz/Macarrão + <span class="val-carbo" data-base="6" data-alto="8" data-baixo="4">6</span> col. sopa Lentilha/Grão de Bico <strong>OU</strong><br> 
-                        <span class="peso-cru val-carbo" data-base="100g" data-alto="125g" data-baixo="70g">100g</span><span class="peso-pronto val-carbo" data-base="~300g" data-alto="~375g" data-baixo="~210g">~300g</span> Arroz/Macarrão + <span class="val-carbo" data-base="200g" data-alto="250g" data-baixo="140g">200g</span> Abóbora/Cenoura.
-                      </li>
-                    </ul>
-                  </div>
+                  <div class="food-icon" contenteditable="false">🥞</div>
+                  <div><span class="base-label">Carbo Principal</span><br><strong>80g Tapioca Média</strong> OU <strong>40g Creme de Arroz/Aveia</strong></div>
                 </div>
               </li>
               <li class="food-item">
                 <div class="food-item-header">
-                  <div class="food-icon" contenteditable="false" style="background: var(--surface-hover); color: var(--text);">🥗</div>
-                  <div style="width: 100%;">
-                    <span class="base-label">MICRONUTRIÇÃO</span><br>
-                    <strong>Salada verde à vontade + Limão / Vinagre de Maçã.</strong>
-                  </div>
+                  <div class="food-icon" contenteditable="false">🍌</div>
+                  <div><span class="base-label">Carbo Fruta</span><br><strong>100g Banana ou Mamão + 15g Aveia em flocos por cima</strong></div>
+                </div>
+              </li>
+              <li class="food-item">
+                <div class="food-item-header">
+                  <div class="food-icon" contenteditable="false">☕</div>
+                  <div><span class="base-label">Acompanhamento</span><br><strong>Café preto puro (sem açúcar) + Canela</strong></div>
                 </div>
               </li>
             </ul>
           </div>
         </div>
-      </div>
 
-      <div class="meal-card" id="meal3">
-        <div class="card">
-          <div class="meal-header">
-            <h3 class="meal-title">Pré ou Pós Treino</h3>
-            <div class="meal-actions">
-              <button class="act-btn" onclick="togglePeso(this,'card3')">⚖️ Cru/Pronto</button>
-              <button class="act-btn active" onclick="setCarbo(this,'base','card3')">⏺️ Base</button>
-              <button class="act-btn alto" onclick="setCarbo(this,'alto','card3')">⬆️ Alto</button>
-              <button class="act-btn baixo" onclick="setCarbo(this,'baixo','card3')">⬇️ Baixo</button>
+        <div class="meal-card" id="meal2">
+          <div class="card">
+            <div class="meal-header">
+              <h3 class="meal-title">Almoço</h3>
+              <div class="meal-actions">
+                <button class="act-btn" onclick="togglePeso(this,'card2')">⚖️ Cru/Pronto</button>
+                <button class="act-btn active" onclick="setCarbo(this,'base','card2')">⏺️ Base</button>
+                <button class="act-btn alto" onclick="setCarbo(this,'alto','card2')">⬆️ Alto</button>
+                <button class="act-btn baixo" onclick="setCarbo(this,'baixo','card2')">⬇️ Baixo</button>
+              </div>
+            </div>
+            <div class="subsection" id="card2" contenteditable="true">
+              <ul class="food-list">
+                <li class="food-item">
+                  <div class="food-item-header">
+                    <div class="food-icon" contenteditable="false" style="background: #3498db;">🥩</div>
+                    <div style="width: 100%;">
+                      <span class="base-label">PROTEÍNA MAGRA</span><br> 
+                      <strong class="peso-cru">100g (CRU)</strong><strong class="peso-pronto">~70g (PRONTO)</strong> da proteína escolhida.<br>
+                      <span class="food-amount">Foco: Peito de Frango, Patinho, Coxa c/ Sobrecoxa s/ pele ou Tilápia.</span>
+                    </div>
+                  </div>
+                </li>
+                <li class="food-item">
+                  <div class="food-item-header">
+                    <div class="food-icon" contenteditable="false" style="background: var(--carb-high);">🍚</div>
+                    <div style="width: 100%;">
+                      <span class="base-label">CARBOIDRATO (Escolha 1)</span><br>
+                      <ul class="food-options-list" style="margin-top: 0.5rem; list-style:none; padding-left:0;">
+                        <li style="color: var(--carb-high);"><strong>🔥 MELHORES:</strong><br> 
+                          <span class="peso-cru val-carbo" data-base="120g" data-alto="150g" data-baixo="85g">120g</span><span class="peso-pronto val-carbo" data-base="~360g" data-alto="~450g" data-baixo="~255g">~360g</span> Arroz Parboilizado + 100g Vegetais Verdes <strong>OU</strong><br> 
+                          <span class="peso-cru val-carbo" data-base="290g" data-alto="360g" data-baixo="200g">290g</span><span class="peso-pronto val-carbo" data-base="~290g" data-alto="~360g" data-baixo="~200g">~290g</span> Mandioca <strong>OU</strong><br> 
+                          <span class="peso-cru val-carbo" data-base="400g" data-alto="500g" data-baixo="280g">400g</span><span class="peso-pronto val-carbo" data-base="~400g" data-alto="~500g" data-baixo="~280g">~400g</span> Batata Doce/Cará <strong>OU</strong><br> 
+                          <span class="peso-cru val-carbo" data-base="75g" data-alto="95g" data-baixo="50g">75g</span><span class="peso-pronto val-carbo" data-base="~225g" data-alto="~285g" data-baixo="~150g">~225g</span> Arroz Parb. + <span class="peso-cru val-carbo" data-base="150g" data-alto="190g" data-baixo="105g">150g</span><span class="peso-pronto val-carbo" data-base="~150g" data-alto="~190g" data-baixo="~105g">~150g</span> Batata Doce.
+                        </li>
+                        <li style="color: var(--carb-low); margin-top:0.5rem;"><strong>⚡ SECUNDÁRIAS:</strong><br> 
+                          <span class="peso-cru val-carbo" data-base="90g" data-alto="110g" data-baixo="60g">90g</span><span class="peso-pronto val-carbo" data-base="~270g" data-alto="~330g" data-baixo="~180g">~270g</span> Arroz/Macarrão + <span class="val-carbo" data-base="6" data-alto="8" data-baixo="4">6</span> col. sopa Lentilha/Grão de Bico <strong>OU</strong><br> 
+                          <span class="peso-cru val-carbo" data-base="100g" data-alto="125g" data-baixo="70g">100g</span><span class="peso-pronto val-carbo" data-base="~300g" data-alto="~375g" data-baixo="~210g">~300g</span> Arroz/Macarrão + <span class="val-carbo" data-base="200g" data-alto="250g" data-baixo="140g">200g</span> Abóbora/Cenoura.
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </li>
+                <li class="food-item">
+                  <div class="food-item-header">
+                    <div class="food-icon" contenteditable="false" style="background: var(--surface-hover); color: var(--text);">🥗</div>
+                    <div style="width: 100%;">
+                      <span class="base-label">MICRONUTRIÇÃO</span><br>
+                      <strong>Salada verde à vontade + Limão / Vinagre de Maçã.</strong>
+                    </div>
+                  </div>
+                </li>
+              </ul>
             </div>
           </div>
-          <p style="color: var(--text-secondary); margin-bottom: 1rem; font-style: italic;">Obs: Consumir entre 1 a 2 horas antes do seu treino (se for usar como Pré).</p>
-          <div class="subsection" id="card3" contenteditable="true">
+        </div>
+
+        <div class="meal-card" id="meal3">
+          <div class="card">
+            <div class="meal-header">
+              <h3 class="meal-title">Pré ou Pós Treino</h3>
+              <div class="meal-actions">
+                <button class="act-btn" onclick="togglePeso(this,'card3')">⚖️ Cru/Pronto</button>
+                <button class="act-btn active" onclick="setCarbo(this,'base','card3')">⏺️ Base</button>
+                <button class="act-btn alto" onclick="setCarbo(this,'alto','card3')">⬆️ Alto</button>
+                <button class="act-btn baixo" onclick="setCarbo(this,'baixo','card3')">⬇️ Baixo</button>
+              </div>
+            </div>
+            <p style="color: var(--text-secondary); margin-bottom: 1rem; font-style: italic;">Obs: Consumir entre 1 a 2 horas antes do seu treino (se for usar como Pré).</p>
+            <div class="subsection" id="card3" contenteditable="true">
+              
+              <h4 style="text-transform: uppercase; color: var(--primary);">OPÇÃO PRINCIPAL (SÓLIDA)</h4>
+              <ul class="food-list">
+                <li class="food-item">
+                  <div class="food-item-header">
+                    <div class="food-icon" contenteditable="false" style="background: #3498db;">🥩</div>
+                    <div style="width: 100%;"><span class="base-label">PROTEÍNA MAGRA</span><br> <strong class="peso-cru">100g (CRU)</strong><strong class="peso-pronto">~70g (PRONTO)</strong> da proteína escolhida.</div>
+                  </div>
+                </li>
+                <li class="food-item">
+                  <div class="food-item-header">
+                    <div class="food-icon" contenteditable="false" style="background: var(--carb-high);">🍚</div>
+                    <div style="width: 100%;">
+                      <span class="base-label">CARBOIDRATO (Escolha 1)</span><br>
+                      <ul class="food-options-list" style="margin-top: 0.5rem; list-style:none; padding-left:0;">
+                        <li style="color: var(--carb-high);"><strong>🔥 MELHORES:</strong><br> 
+                          <span class="peso-cru val-carbo" data-base="120g" data-alto="150g" data-baixo="85g">120g</span><span class="peso-pronto val-carbo" data-base="~360g" data-alto="~450g" data-baixo="~255g">~360g</span> Arroz Parboilizado + 100g Vegetais Verdes <strong>OU</strong><br> 
+                          <span class="peso-cru val-carbo" data-base="290g" data-alto="360g" data-baixo="200g">290g</span><span class="peso-pronto val-carbo" data-base="~290g" data-alto="~360g" data-baixo="~200g">~290g</span> Mandioca <strong>OU</strong><br> 
+                          <span class="peso-cru val-carbo" data-base="400g" data-alto="500g" data-baixo="280g">400g</span><span class="peso-pronto val-carbo" data-base="~400g" data-alto="~500g" data-baixo="~280g">~400g</span> Batata Doce/Cará <strong>OU</strong><br> 
+                          <span class="peso-cru val-carbo" data-base="75g" data-alto="95g" data-baixo="50g">75g</span><span class="peso-pronto val-carbo" data-base="~225g" data-alto="~285g" data-baixo="~150g">~225g</span> Arroz Parb. + <span class="peso-cru val-carbo" data-base="150g" data-alto="190g" data-baixo="105g">150g</span><span class="peso-pronto val-carbo" data-base="~150g" data-alto="~190g" data-baixo="~105g">~150g</span> Batata Doce.
+                        </li>
+                        <li style="color: var(--carb-low); margin-top:0.5rem;"><strong>⚡ SECUNDÁRIAS:</strong><br> 
+                          <span class="peso-cru val-carbo" data-base="90g" data-alto="110g" data-baixo="60g">90g</span><span class="peso-pronto val-carbo" data-base="~270g" data-alto="~330g" data-baixo="~180g">~270g</span> Arroz/Macarrão + <span class="val-carbo" data-base="6" data-alto="8" data-baixo="4">6</span> col. sopa Lentilha/Grão de Bico <strong>OU</strong><br> 
+                          <span class="peso-cru val-carbo" data-base="100g" data-alto="125g" data-baixo="70g">100g</span><span class="peso-pronto val-carbo" data-base="~300g" data-alto="~375g" data-baixo="~210g">~300g</span> Arroz/Macarrão + <span class="val-carbo" data-base="200g" data-alto="250g" data-baixo="140g">200g</span> Abóbora/Cenoura.
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </li>
+              </ul>
+
+              <h4 style="margin-top: 2rem; text-transform: uppercase; color: var(--primary-light);">OPÇÃO SECUNDÁRIA (LÍQUIDA/PRÁTICA)</h4>
+              <ul class="food-list">
+                <li class="food-item">
+                  <div class="food-item-header">
+                    <div class="food-icon" contenteditable="false" style="background: #3498db;">🥛</div>
+                    <div style="width: 100%;"><span class="base-label">PROTEÍNA RÁPIDA</span><br> 1 scoop (30g) de Whey Protein ISOLADO ou Clara de Ovos Pasteurizada (25g prot).</div>
+                  </div>
+                </li>
+                <li class="food-item">
+                  <div class="food-item-header">
+                    <div class="food-icon" contenteditable="false" style="background: var(--carb-high);">🥣</div>
+                    <div style="width: 100%;">
+                      <span class="base-label">CARBOIDRATO PRÁTICO (Escolha 1)</span><br>
+                      <ul class="food-options-list" style="margin-top: 0.5rem; list-style:none; padding-left:0;">
+                        <li style="color: var(--primary-light);"><strong>🚀 OPÇÕES:</strong><br>
+                          <span class="peso-cru val-carbo" data-base="60g" data-alto="75g" data-baixo="40g">60g</span><span class="peso-pronto val-carbo" data-base="60g" data-alto="75g" data-baixo="40g">60g</span> Aveia + <span class="peso-cru val-carbo" data-base="60g" data-alto="75g" data-baixo="40g">60g</span><span class="peso-pronto val-carbo" data-base="60g" data-alto="75g" data-baixo="40g">60g</span> Farinha de arroz/Cuscuz <strong>OU</strong><br> 
+                          <span class="peso-cru val-carbo" data-base="120g" data-alto="150g" data-baixo="85g">120g</span><span class="peso-pronto val-carbo" data-base="120g" data-alto="150g" data-baixo="85g">120g</span> Farinha de Arroz <strong>OU</strong><br> 
+                          <span class="peso-cru val-carbo" data-base="120g" data-alto="150g" data-baixo="85g">120g</span><span class="peso-pronto val-carbo" data-base="120g" data-alto="150g" data-baixo="85g">120g</span> Waxy Maize <strong>OU</strong><br> 
+                          <span class="peso-cru val-carbo" data-base="125g" data-alto="155g" data-baixo="85g">125g</span><span class="peso-pronto val-carbo" data-base="~125g" data-alto="~155g" data-baixo="~85g">~125g</span> Bolacha de Arroz Integral <strong>OU</strong><br> 
+                          <span class="peso-cru val-carbo" data-base="100g" data-alto="125g" data-baixo="70g">100g</span><span class="peso-pronto val-carbo" data-base="100g" data-alto="125g" data-baixo="70g">100g</span> de carbo de Tapioca.
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="meal-card" id="meal4">
+          <div class="card">
+            <div class="meal-header">
+              <h3 class="meal-title">Jantar (20:00)</h3>
+              <div class="meal-actions">
+                <span class="fasting-badge" style="background: #2a2a2a; border: 1px solid var(--border); padding: 5px 10px; border-radius: 5px;">ZERO CARBO</span>
+                <button class="act-btn" onclick="togglePeso(this,'card4')">⚖️ Cru / Pronto</button>
+              </div>
+            </div>
             
-            <h4 style="text-transform: uppercase; color: var(--primary);">OPÇÃO PRINCIPAL (SÓLIDA)</h4>
-            <ul class="food-list">
-              <li class="food-item">
-                <div class="food-item-header">
-                  <div class="food-icon" contenteditable="false" style="background: #3498db;">🥩</div>
-                  <div style="width: 100%;"><span class="base-label">PROTEÍNA MAGRA</span><br> <strong class="peso-cru">100g (CRU)</strong><strong class="peso-pronto">~70g (PRONTO)</strong> da proteína escolhida.</div>
-                </div>
-              </li>
-              <li class="food-item">
-                <div class="food-item-header">
-                  <div class="food-icon" contenteditable="false" style="background: var(--carb-high);">🍚</div>
-                  <div style="width: 100%;">
-                    <span class="base-label">CARBOIDRATO (Escolha 1)</span><br>
-                    <ul class="food-options-list" style="margin-top: 0.5rem; list-style:none; padding-left:0;">
-                      <li style="color: var(--carb-high);"><strong>🔥 MELHORES:</strong><br> 
-                        <span class="peso-cru val-carbo" data-base="120g" data-alto="150g" data-baixo="85g">120g</span><span class="peso-pronto val-carbo" data-base="~360g" data-alto="~450g" data-baixo="~255g">~360g</span> Arroz Parboilizado + 100g Vegetais Verdes <strong>OU</strong><br> 
-                        <span class="peso-cru val-carbo" data-base="290g" data-alto="360g" data-baixo="200g">290g</span><span class="peso-pronto val-carbo" data-base="~290g" data-alto="~360g" data-baixo="~200g">~290g</span> Mandioca <strong>OU</strong><br> 
-                        <span class="peso-cru val-carbo" data-base="400g" data-alto="500g" data-baixo="280g">400g</span><span class="peso-pronto val-carbo" data-base="~400g" data-alto="~500g" data-baixo="~280g">~400g</span> Batata Doce/Cará <strong>OU</strong><br> 
-                        <span class="peso-cru val-carbo" data-base="75g" data-alto="95g" data-baixo="50g">75g</span><span class="peso-pronto val-carbo" data-base="~225g" data-alto="~285g" data-baixo="~150g">~225g</span> Arroz Parb. + <span class="peso-cru val-carbo" data-base="150g" data-alto="190g" data-baixo="105g">150g</span><span class="peso-pronto val-carbo" data-base="~150g" data-alto="~190g" data-baixo="~105g">~150g</span> Batata Doce.
-                      </li>
-                      <li style="color: var(--carb-low); margin-top:0.5rem;"><strong>⚡ SECUNDÁRIAS:</strong><br> 
-                        <span class="peso-cru val-carbo" data-base="90g" data-alto="110g" data-baixo="60g">90g</span><span class="peso-pronto val-carbo" data-base="~270g" data-alto="~330g" data-baixo="~180g">~270g</span> Arroz/Macarrão + <span class="val-carbo" data-base="6" data-alto="8" data-baixo="4">6</span> col. sopa Lentilha/Grão de Bico <strong>OU</strong><br> 
-                        <span class="peso-cru val-carbo" data-base="100g" data-alto="125g" data-baixo="70g">100g</span><span class="peso-pronto val-carbo" data-base="~300g" data-alto="~375g" data-baixo="~210g">~300g</span> Arroz/Macarrão + <span class="val-carbo" data-base="200g" data-alto="250g" data-baixo="140g">200g</span> Abóbora/Cenoura.
-                      </li>
-                    </ul>
-                  </div>
-                </div>
-              </li>
-            </ul>
+            <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
+              Proteína + Gordura. Escolha <strong>UMA</strong> das 4 opções (A gordura complementar já foi ajustada):
+            </p>
 
-            <h4 style="margin-top: 2rem; text-transform: uppercase; color: var(--primary-light);">OPÇÃO SECUNDÁRIA (LÍQUIDA/PRÁTICA)</h4>
-            <ul class="food-list">
-              <li class="food-item">
-                <div class="food-item-header">
-                  <div class="food-icon" contenteditable="false" style="background: #3498db;">🥛</div>
-                  <div style="width: 100%;"><span class="base-label">PROTEÍNA RÁPIDA</span><br> 1 scoop (30g) de Whey Protein ISOLADO ou Clara de Ovos Pasteurizada (25g prot).</div>
-                </div>
-              </li>
-              <li class="food-item">
-                <div class="food-item-header">
-                  <div class="food-icon" contenteditable="false" style="background: var(--carb-high);">🥣</div>
-                  <div style="width: 100%;">
-                    <span class="base-label">CARBOIDRATO PRÁTICO (Escolha 1)</span><br>
-                    <ul class="food-options-list" style="margin-top: 0.5rem; list-style:none; padding-left:0;">
-                      <li style="color: var(--primary-light);"><strong>🚀 OPÇÕES:</strong><br>
-                        <span class="peso-cru val-carbo" data-base="60g" data-alto="75g" data-baixo="40g">60g</span><span class="peso-pronto val-carbo" data-base="60g" data-alto="75g" data-baixo="40g">60g</span> Aveia + <span class="peso-cru val-carbo" data-base="60g" data-alto="75g" data-baixo="40g">60g</span><span class="peso-pronto val-carbo" data-base="60g" data-alto="75g" data-baixo="40g">60g</span> Farinha de arroz/Cuscuz <strong>OU</strong><br> 
-                        <span class="peso-cru val-carbo" data-base="120g" data-alto="150g" data-baixo="85g">120g</span><span class="peso-pronto val-carbo" data-base="120g" data-alto="150g" data-baixo="85g">120g</span> Farinha de Arroz <strong>OU</strong><br> 
-                        <span class="peso-cru val-carbo" data-base="120g" data-alto="150g" data-baixo="85g">120g</span><span class="peso-pronto val-carbo" data-base="120g" data-alto="150g" data-baixo="85g">120g</span> Waxy Maize <strong>OU</strong><br> 
-                        <span class="peso-cru val-carbo" data-base="125g" data-alto="155g" data-baixo="85g">125g</span><span class="peso-pronto val-carbo" data-base="~125g" data-alto="~155g" data-baixo="~85g">~125g</span> Bolacha de Arroz Integral <strong>OU</strong><br> 
-                        <span class="peso-cru val-carbo" data-base="100g" data-alto="125g" data-baixo="70g">100g</span><span class="peso-pronto val-carbo" data-base="100g" data-alto="125g" data-baixo="70g">100g</span> de carbo de Tapioca.
-                      </li>
-                    </ul>
-                  </div>
-                </div>
-              </li>
-            </ul>
+            <div class="options-grid" id="card4">
+              <div class="option-card">
+                <h5>1️⃣ Opção: Proteína Magra Clássica</h5>
+                <ul style="padding-left: 1.2rem; margin-bottom:0.5rem;">
+                  <li><strong class="peso-cru">100g (CRU)</strong><strong class="peso-pronto">~70g (PRONTO)</strong> Peito de Frango, Patinho ou Tilápia</li>
+                  <li>150g de Vegetais Verdes Livres</li>
+                </ul>
+                <strong style="color:var(--carb-low)">+ Gordura (Escolha 1):</strong>
+                <ul style="padding-left: 1.2rem; margin-top: 0.2rem;">
+                  <li>40ml de Azeite</li>
+                  <li>50g de Castanhas (Pará/Macadâmia)</li>
+                  <li>130g de Coco Fresco</li>
+                </ul>
+              </div>
+
+              <div class="option-card">
+                <h5>2️⃣ Opção: Bovino Gordo (Colágeno)</h5>
+                <ul style="padding-left: 1.2rem; margin-bottom:0.5rem;">
+                  <li><strong class="peso-cru">100g (CRU)</strong><strong class="peso-pronto">~70g (PRONTO)</strong> Músculo, Acém ou Maminha</li>
+                  <li>150g de Vegetais Verdes Livres</li>
+                </ul>
+                <strong style="color:var(--carb-low)">+ Gordura (Escolha 1):</strong>
+                <ul style="padding-left: 1.2rem; margin-top: 0.2rem;">
+                  <li>25ml de Azeite</li>
+                  <li>60g de Mussarela de Búfala</li>
+                </ul>
+              </div>
+
+              <div class="option-card">
+                <h5>3️⃣ Opção: Peixe Gordo (Ômega 3)</h5>
+                <ul style="padding-left: 1.2rem; margin-bottom:0.5rem;">
+                  <li><strong class="peso-cru">100g (CRU)</strong><strong class="peso-pronto">~75g (PRONTO)</strong> Salmão ou Sardinha</li>
+                  <li>150g de Vegetais Verdes Livres</li>
+                </ul>
+                <strong style="color:var(--carb-low)">+ Gordura (Escolha 1):</strong>
+                <ul style="padding-left: 1.2rem; margin-top: 0.2rem;">
+                  <li>30g de Castanhas Mistas</li>
+                  <li>80g de Coco Fresco</li>
+                </ul>
+              </div>
+
+              <div class="option-card">
+                <h5>4️⃣ Opção: Corte Suíno</h5>
+                <ul style="padding-left: 1.2rem; margin-bottom:0.5rem;">
+                  <li><strong class="peso-cru">100g (CRU)</strong><strong class="peso-pronto">~70g (PRONTO)</strong> Lombo c/ capa ou Bisteca</li>
+                  <li>150g de Vegetais Verdes Livres</li>
+                </ul>
+                <strong style="color:var(--carb-low)">+ Gordura (Escolha 1):</strong>
+                <ul style="padding-left: 1.2rem; margin-top: 0.2rem;">
+                  <li>20ml de Azeite</li>
+                  <li>50g de Mussarela de Búfala</li>
+                </ul>
+              </div>
+            </div>
+            
+            <div class="subsection" style="border-left-color: var(--carb-low); background: rgba(241, 196, 15, 0.05); margin-top:2rem;">
+              <h4 style="color: var(--carb-low);">⚠️ Restrição Absoluta</h4>
+              <p>Proibido consumo de bebidas adoçadas nesta refeição (mesmo zero/diet). Adoçantes podem elevar a resposta insulínica cefálica e suprimir a secreção de GH noturno.</p>
+            </div>
           </div>
         </div>
-      </div>
-
-      <div class="meal-card" id="meal4">
-        <div class="card">
-          <div class="meal-header">
-            <h3 class="meal-title">Jantar (20:00)</h3>
-            <div class="meal-actions">
-              <span class="fasting-badge" style="background: #2a2a2a; border: 1px solid var(--border); padding: 5px 10px; border-radius: 5px;">ZERO CARBO</span>
-              <button class="act-btn" onclick="togglePeso(this,'card4')">⚖️ Cru / Pronto</button>
+        
+        <div class="meal-card" id="mealstrategy">
+          <div class="card">
+            <div class="meal-header">
+              <h3 class="meal-title">🔥 Directrizes Estratégicas</h3>
+              <span class="meal-badge" style="background: var(--surface-hover); color:var(--text);">Gestão Semanal</span>
             </div>
-          </div>
-          
-          <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
-            Proteína + Gordura. Escolha <strong>UMA</strong> das 4 opções (A gordura complementar já foi ajustada):
-          </p>
-
-          <div class="options-grid" id="card4">
-            <div class="option-card">
-              <h5>1️⃣ Opção: Proteína Magra Clássica</h5>
-              <ul style="padding-left: 1.2rem; margin-bottom:0.5rem;">
-                <li><strong class="peso-cru">100g (CRU)</strong><strong class="peso-pronto">~70g (PRONTO)</strong> Peito de Frango, Patinho ou Tilápia</li>
-                <li>150g de Vegetais Verdes Livres</li>
-              </ul>
-              <strong style="color:var(--carb-low)">+ Gordura (Escolha 1):</strong>
-              <ul style="padding-left: 1.2rem; margin-top: 0.2rem;">
-                <li>40ml de Azeite</li>
-                <li>50g de Castanhas (Pará/Macadâmia)</li>
-                <li>130g de Coco Fresco</li>
-              </ul>
+            
+            <div class="options-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin-bottom: 2rem;">
+              <div class="option-card" style="text-align:center; border-color: var(--carb-low);">
+                <h5 style="color: var(--carb-low);">Dia OFF / AEJ (-15%)</h5>
+                <div style="font-size: 2rem; font-weight: 700; color: var(--carb-low);">2.266 <span style="font-size:1rem">kcal</span></div>
+                <p style="color: var(--text-secondary); font-size: 0.85rem; font-family: monospace; margin-top:0.5rem;">C: 259g (-46g)</p>
+              </div>
+              <div class="option-card" style="text-align:center; border-color: var(--primary); background: rgba(200,29,29,0.05);">
+                <h5 style="color: var(--primary);">Base (Padrão)</h5>
+                <div style="font-size: 2.2rem; font-weight: 700; color: var(--primary);">2.450 <span style="font-size:1rem">kcal</span></div>
+                <p style="color: var(--primary); font-size: 0.9rem; font-family: monospace; margin-top:0.5rem; font-weight:600;">P: 160g | C: 305g | G: 65g</p>
+              </div>
+              <div class="option-card" style="text-align:center; border-color: var(--carb-high);">
+                <h5 style="color: var(--carb-high);">Dia Alto (+15%)</h5>
+                <div style="font-size: 2rem; font-weight: 700; color: var(--carb-high);">2.634 <span style="font-size:1rem">kcal</span></div>
+                <p style="color: var(--text-secondary); font-size: 0.85rem; font-family: monospace; margin-top:0.5rem;">C: 351g (+46g)</p>
+              </div>
             </div>
 
-            <div class="option-card">
-              <h5>2️⃣ Opção: Bovino Gordo (Colágeno)</h5>
-              <ul style="padding-left: 1.2rem; margin-bottom:0.5rem;">
-                <li><strong class="peso-cru">100g (CRU)</strong><strong class="peso-pronto">~70g (PRONTO)</strong> Músculo, Acém ou Maminha</li>
-                <li>150g de Vegetais Verdes Livres</li>
-              </ul>
-              <strong style="color:var(--carb-low)">+ Gordura (Escolha 1):</strong>
-              <ul style="padding-left: 1.2rem; margin-top: 0.2rem;">
-                <li>25ml de Azeite</li>
-                <li>60g de Mussarela de Búfala</li>
+            <div class="subsection" contenteditable="true">
+              <h4>🔄 Protocolo de Execução</h4>
+              <ul style="padding-left: 1.5rem; line-height: 1.8;">
+                <li><strong style="color: var(--primary);">Dias de Treino Padrão:</strong> Siga a Dieta Base rigorosamente. Sem cortes, sem bônus.</li>
+                <li><strong style="color: var(--carb-high);">Carbo Alto (Seg e Sex):</strong> Dias de treino de Glúteo e Braços/Ombros. Você demandará mais energia e recuperação tecidual. Este é o seu dia de Carbo Alto.</li>
+                <li><strong style="color: var(--carb-low);">Dias OFF / AEJ:</strong> Nestes dias sem musculação, entre em Carbo Baixo (-15%). Reduza os carbos nas R2 e R3 para forçar a oxidação de gordura.</li>
+                <li><strong>Refeição Livre:</strong> O direito ao "lixo" é conquistado após 14 dias de disciplina 100%. Substitua a primeira e a última refeição do dia por 1 (uma) refeição livre à sua escolha, sempre em um dia de Carbo Alto.</li>
+                <li><strong>Otimizações Constantes:</strong> Adoçantes (Stevia/Eritritol). Use Canela, Limão, Orégano e Vinagre de Maçã para controle glicêmico e digestão em todas as refeições possíveis.</li>
               </ul>
             </div>
-
-            <div class="option-card">
-              <h5>3️⃣ Opção: Peixe Gordo (Ômega 3)</h5>
-              <ul style="padding-left: 1.2rem; margin-bottom:0.5rem;">
-                <li><strong class="peso-cru">100g (CRU)</strong><strong class="peso-pronto">~75g (PRONTO)</strong> Salmão ou Sardinha</li>
-                <li>150g de Vegetais Verdes Livres</li>
-              </ul>
-              <strong style="color:var(--carb-low)">+ Gordura (Escolha 1):</strong>
-              <ul style="padding-left: 1.2rem; margin-top: 0.2rem;">
-                <li>30g de Castanhas Mistas</li>
-                <li>80g de Coco Fresco</li>
-              </ul>
-            </div>
-
-            <div class="option-card">
-              <h5>4️⃣ Opção: Corte Suíno</h5>
-              <ul style="padding-left: 1.2rem; margin-bottom:0.5rem;">
-                <li><strong class="peso-cru">100g (CRU)</strong><strong class="peso-pronto">~70g (PRONTO)</strong> Lombo c/ capa ou Bisteca</li>
-                <li>150g de Vegetais Verdes Livres</li>
-              </ul>
-              <strong style="color:var(--carb-low)">+ Gordura (Escolha 1):</strong>
-              <ul style="padding-left: 1.2rem; margin-top: 0.2rem;">
-                <li>20ml de Azeite</li>
-                <li>50g de Mussarela de Búfala</li>
-              </ul>
-            </div>
-          </div>
-          
-          <div class="subsection" style="border-left-color: var(--carb-low); background: rgba(241, 196, 15, 0.05); margin-top:2rem;">
-            <h4 style="color: var(--carb-low);">⚠️ Restrição Absoluta</h4>
-            <p>Proibido consumo de bebidas adoçadas nesta refeição (mesmo zero/diet). Adoçantes podem elevar a resposta insulínica cefálica e suprimir a secreção de GH noturno.</p>
           </div>
         </div>
-      </div>
-      
-      <div class="meal-card" id="mealstrategy">
-        <div class="card">
-          <div class="meal-header">
-            <h3 class="meal-title">🔥 Directrizes Estratégicas</h3>
-            <span class="meal-badge" style="background: var(--surface-hover); color:var(--text);">Gestão Semanal</span>
-          </div>
-          
-          <div class="options-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin-bottom: 2rem;">
-            <div class="option-card" style="text-align:center; border-color: var(--carb-low);">
-              <h5 style="color: var(--carb-low);">Dia OFF / AEJ (-15%)</h5>
-              <div style="font-size: 2rem; font-weight: 700; color: var(--carb-low);">2.266 <span style="font-size:1rem">kcal</span></div>
-              <p style="color: var(--text-secondary); font-size: 0.85rem; font-family: monospace; margin-top:0.5rem;">C: 259g (-46g)</p>
-            </div>
-            <div class="option-card" style="text-align:center; border-color: var(--primary); background: rgba(200,29,29,0.05);">
-              <h5 style="color: var(--primary);">Base (Padrão)</h5>
-              <div style="font-size: 2.2rem; font-weight: 700; color: var(--primary);">2.450 <span style="font-size:1rem">kcal</span></div>
-              <p style="color: var(--primary); font-size: 0.9rem; font-family: monospace; margin-top:0.5rem; font-weight:600;">P: 160g | C: 305g | G: 65g</p>
-            </div>
-            <div class="option-card" style="text-align:center; border-color: var(--carb-high);">
-              <h5 style="color: var(--carb-high);">Dia Alto (+15%)</h5>
-              <div style="font-size: 2rem; font-weight: 700; color: var(--carb-high);">2.634 <span style="font-size:1rem">kcal</span></div>
-              <p style="color: var(--text-secondary); font-size: 0.85rem; font-family: monospace; margin-top:0.5rem;">C: 351g (+46g)</p>
-            </div>
-          </div>
+      </section>
 
-          <div class="subsection" contenteditable="true">
-            <h4>🔄 Protocolo de Execução</h4>
-            <ul style="padding-left: 1.5rem; line-height: 1.8;">
-              <li><strong style="color: var(--primary);">Dias de Treino Padrão:</strong> Siga a Dieta Base rigorosamente. Sem cortes, sem bônus.</li>
-              <li><strong style="color: var(--carb-high);">Carbo Alto (Seg e Sex):</strong> Dias de treino de Glúteo e Braços/Ombros. Você demandará mais energia e recuperação tecidual. Este é o seu dia de Carbo Alto.</li>
-              <li><strong style="color: var(--carb-low);">Dias OFF / AEJ:</strong> Nestes dias sem musculação, entre em Carbo Baixo (-15%). Reduza os carbos nas R2 e R3 para forçar a oxidação de gordura.</li>
-              <li><strong>Refeição Livre:</strong> O direito ao "lixo" é conquistado após 14 dias de disciplina 100%. Substitua a primeira e a última refeição do dia por 1 (uma) refeição livre à sua escolha, sempre em um dia de Carbo Alto.</li>
-              <li><strong>Otimizações Constantes:</strong> Adoçantes (Stevia/Eritritol). Use Canela, Limão, Orégano e Vinagre de Maçã para controle glicêmico e digestão em todas as refeições possíveis.</li>
-            </ul>
-          </div>
+      <section class="section">
+        <div class="note-box" style="background: rgba(200, 29, 29, 0.05); border: 1px solid rgba(200, 29, 29, 0.2);">
+          <h4 style="color: var(--primary); margin-bottom: 0.5rem;">⚠️ Aviso de Responsabilidade Profissional</h4>
+          <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 0.5rem;">Este plano foi elaborado por um Profissional de Educação Física (CREF: 206788-G/SP).</p>
+          <p style="font-size: 0.9rem; color: var(--text-secondary);">As informações nutricionais são sugestões para fins de planejamento e organização, não substituindo o acompanhamento de um Nutricionista habilitado. Realize avaliação médica antes de iniciar o protocolo.</p>
         </div>
-      </div>
-    </section>
+      </section>
+    </div>
+  </div> <!-- FIM DO CONTEÚDO PRINCIPAL -->
 
-    <section class="section">
-      <div class="note-box" style="background: rgba(200, 29, 29, 0.05); border: 1px solid rgba(200, 29, 29, 0.2);">
-        <h4 style="color: var(--primary); margin-bottom: 0.5rem;">⚠️ Aviso de Responsabilidade Profissional</h4>
-        <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 0.5rem;">Este plano foi elaborado por um Profissional de Educação Física (CREF: 206788-G/SP).</p>
-        <p style="font-size: 0.9rem; color: var(--text-secondary);">As informações nutricionais são sugestões para fins de planejamento e organização, não substituindo o acompanhamento de um Nutricionista habilitado. Realize avaliação médica antes de iniciar o protocolo.</p>
-      </div>
-    </section>
-  </div>
-
+  <!-- MODAIS AQUI EMBAIXO (Inalterados, mantidos na hierarquia principal) -->
   <div id="suplementosModal" class="modal">
     <div class="modal-content">
       <div class="modal-header">
@@ -660,7 +700,7 @@
               <span style="font-size: 0.85rem; color: var(--text-secondary); font-style: italic;">Tomar 1 comprimido 30 minutos antes de dormir.</span>
             </li>
             <li style="margin-bottom: 0.8rem; border-bottom: 1px solid var(--border); padding-bottom: 0.8rem;">
-              <strong>Fórmula ZMA+: Magnésio (Bisglicinato 300mg + Treonato 200mg) + Zinco 30mg + Vitamina C 700mg</strong><br>
+              <strong>Composto Mineral Geral: Magnésio (Bisglicinato 300mg + Treonato 200mg) + Zinco 30mg + Vitamina C 700mg</strong><br>
               <span style="font-size: 0.85rem; color: var(--text-secondary); font-style: italic;">Na mesma fórmula. Tomar 1 dose 30 min antes de dormir.</span>
             </li>
             <li style="margin-bottom: 0.8rem; border-bottom: 1px solid var(--border); padding-bottom: 0.8rem;">
@@ -1084,6 +1124,34 @@
   </div>
 
   <script>
+    // ─── SISTEMA DE LOGIN E SEGURANÇA ────────────────────────────────
+    const ACCESS_CODE = "ANA2026";
+
+    function verifyCode() {
+      const input = document.getElementById('accessCode').value.trim().toUpperCase();
+      const errorMsg = document.getElementById('loginError');
+      
+      if (input === ACCESS_CODE) {
+        // Salva na sessão atual (expira ao fechar a aba)
+        sessionStorage.setItem('auth_ana_protocol', 'true');
+        unlockApp();
+      } else {
+        errorMsg.style.display = 'block';
+        document.getElementById('accessCode').value = '';
+        document.getElementById('accessCode').focus();
+      }
+    }
+
+    function handleLoginEnter(e) {
+      if (e.key === 'Enter') verifyCode();
+    }
+
+    function unlockApp() {
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('mainContent').style.display = 'block';
+    }
+
+
     // ─── TEMA E NAVEGAÇÃO BÁSICA ─────────────────────────────────────
     function toggleTheme() {
       const body = document.body;
@@ -1358,6 +1426,11 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
+      // Checa se o usuário já validou o código nesta sessão
+      if (sessionStorage.getItem('auth_ana_protocol') === 'true') {
+        unlockApp();
+      }
+
       editableElements.forEach(id => {
         const el = document.getElementById(id);
         if (!el) return;
