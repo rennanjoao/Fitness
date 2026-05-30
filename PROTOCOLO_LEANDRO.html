@@ -1,0 +1,983 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Protocolo de Performance - Leandro Tecedor</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --primary: #c81d1d;
+      --primary-dark: #a01515;
+      --primary-light: #ff4444;
+      --carb-high: #2ecc71;
+      --carb-low: #f1c40f;
+    }
+
+    [data-theme="dark"] {
+      --bg: #0a0a0a; --surface: #1a1a1a; --surface-hover: #242424;
+      --text: #ffffff; --text-secondary: #a0a0a0; --border: #2a2a2a;
+      --shadow: rgba(0, 0, 0, 0.4);
+    }
+
+    [data-theme="light"] {
+      --bg: #f5f5f5; --surface: #ffffff; --surface-hover: #f0f0f0;
+      --text: #1a1a1a; --text-secondary: #666666; --border: #e0e0e0;
+      --shadow: rgba(0, 0, 0, 0.1);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.6;
+      transition: background 0.3s ease, color 0.3s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* ═══════ TELA DE LOGIN (ESTILO PORTAL) ═══════ */
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes scaleIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+
+    #loginScreen {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100vh;
+      background: var(--bg); display: flex; align-items: center; justify-content: center;
+      z-index: 9999; padding: 1.5rem; transition: background 0.3s ease;
+    }
+    .login-card {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      width: 100%; max-width: 320px; animation: scaleIn 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .gate-ring {
+      width: 72px; height: 72px; border-radius: 50%; border: 1px solid var(--primary);
+      background: rgba(200, 29, 29, 0.12); display: flex; align-items: center; justify-content: center;
+      font-size: 1.8rem; margin-bottom: 1rem;
+    }
+    .login-card h2 { 
+      font-size: 1.2rem; margin-bottom: 0.5rem; color: var(--primary); 
+      text-transform: uppercase; letter-spacing: 0.1em; 
+    }
+    .login-card p { 
+      color: var(--text-secondary); margin-bottom: 2rem; 
+      font-size: 0.85rem; text-align: center; 
+    }
+    .login-card input {
+      width: 100%; padding: 1rem; background: var(--surface); border: 1px solid var(--border);
+      border-radius: 8px; color: var(--text); font-size: 16px; margin-bottom: 1rem;
+      text-align: center; transition: all 0.3s ease; text-transform: uppercase; font-weight: bold; letter-spacing: 2px;
+    }
+    .login-card input:focus { outline: none; border-color: var(--primary); }
+    .login-card .btn { padding: 1rem; font-size: 1rem; margin-top: 0; border-radius: 8px; }
+    .error-msg { color: var(--primary-light); font-size: 0.85rem; margin-top: 1rem; font-weight: 600; display: none; animation: fadeIn 0.3s ease; text-align: center; }
+    
+    #mainContent { display: none; animation: fadeIn 0.5s ease; }
+
+    /* ═══════ RESTANTE DO CSS ORIGINAL ═══════ */
+    .header {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      padding: 3rem 2rem; text-align: center; box-shadow: 0 4px 20px rgba(200, 29, 29, 0.3);
+      position: relative;
+    }
+
+    .theme-toggle {
+      position: absolute; top: 2rem; right: 2rem;
+      background: rgba(255, 255, 255, 0.2); border: none;
+      width: 48px; height: 48px; border-radius: 50%; cursor: pointer;
+      font-size: 1.5rem; display: flex; align-items: center; justify-content: center;
+      transition: all 0.3s ease; backdrop-filter: blur(10px);
+    }
+
+    .header h1 { font-size: 2.8rem; font-weight: 700; margin-bottom: 0.75rem; color: white; }
+    .header p { font-size: 1.2rem; opacity: 0.95; color: white; }
+
+    .stats-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1.5rem;
+      max-width: 1400px; margin: 4rem auto 0; padding: 0 2rem; position: relative; z-index: 10;
+    }
+    .stat-card {
+      background: var(--surface); padding: 2rem 1.5rem; border-radius: 16px; border: 1px solid var(--border);
+      text-align: center; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 4px 12px var(--shadow);
+    }
+    .stat-card:hover { transform: translateY(-8px); border-color: var(--primary); }
+    .stat-label { color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
+    .stat-value { font-size: 2rem; font-weight: 700; color: var(--primary); display: inline-block; }
+
+    .container { max-width: 1400px; margin: 0 auto; padding: 4rem 2rem; }
+    .section { margin-bottom: 4rem; }
+    .section-title { font-size: 2rem; margin-bottom: 2rem; display: flex; align-items: center; gap: 1rem; font-weight: 700; }
+    .section-title::before { content: ''; width: 5px; height: 32px; background: var(--primary); border-radius: 3px; }
+
+    .tools-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; }
+    .tool-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+      padding: 2rem; text-align: center; cursor: pointer; transition: all 0.4s ease;
+      box-shadow: 0 2px 8px var(--shadow); position: relative; overflow: hidden;
+    }
+    .tool-card:hover { transform: translateY(-8px) scale(1.02); border-color: var(--primary); box-shadow: 0 12px 32px var(--shadow); }
+
+    .tabs { display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: nowrap; overflow-x: auto; padding-bottom: 5px; }
+    .tab {
+      background: var(--surface); border: 2px solid var(--border); color: var(--text);
+      padding: 1rem 2rem; border-radius: 12px; cursor: pointer; transition: all 0.3s ease;
+      font-size: 1rem; font-weight: 600; white-space: nowrap; flex-shrink: 0;
+    }
+    .tab.active { background: var(--primary); border-color: var(--primary); color: white; box-shadow: 0 4px 12px rgba(200, 29, 29, 0.4); }
+
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 2rem; margin-bottom: 1.5rem; }
+    .meal-card { display: none; }
+    .meal-card.active { display: block; }
+    
+    .meal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 2px solid var(--border); flex-wrap: wrap; gap: 1rem;}
+    .meal-title { font-size: 1.75rem; font-weight: 700; }
+    .meal-badge { background: var(--primary); padding: 0.5rem 1.2rem; border-radius: 20px; font-size: 0.85rem; font-weight: 700; color: white; text-transform: uppercase;}
+    
+    .meal-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; }
+    .act-btn {
+      background: var(--bg); border: 1px solid var(--border); color: var(--text-secondary);
+      font-size: 0.8rem; padding: 8px 16px; border-radius: 8px; cursor: pointer; transition: all 0.2s; font-weight: 600;
+    }
+    .act-btn:hover { border-color: var(--primary); color: var(--text); }
+    .act-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+    .act-btn.alto.active { background: var(--carb-high); border-color: var(--carb-high); color: #fff; }
+    .act-btn.baixo.active { background: var(--carb-low); border-color: var(--carb-low); color: #111; }
+
+    .food-list { list-style: none; display: flex; flex-direction: column; gap: 1rem; }
+    .food-item { padding: 1.5rem; background: var(--bg); border-radius: 12px; display: flex; flex-direction: column; gap: 1rem; border: 1px solid transparent; }
+    .food-item:hover { background: var(--surface-hover); border-color: var(--primary); transform: translateX(4px); transition: all 0.2s ease; }
+    .food-item-header { display: flex; align-items: flex-start; gap: 1.5rem; }
+    .food-icon { width: 48px; height: 48px; background: var(--primary); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; flex-shrink: 0; }
+    
+    .subsection { margin-top: 2rem; padding: 1.5rem; background: var(--bg); border-radius: 12px; border-left: 4px solid var(--primary); }
+    
+    .options-grid { display: grid; gap: 1.5rem; margin-top: 1.5rem; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+    .option-card { background: var(--surface); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border); }
+    .option-card h5 { color: var(--primary); margin-bottom: 1rem; font-size: 1.1rem; font-weight: 700; }
+
+    .peso-pronto { display: none; }
+    .show-pronto .peso-pronto { display: inline; color: #e67e22; font-weight: 700;}
+    .show-pronto .peso-cru { display: none; }
+    .peso-cru { font-weight: 700; color: var(--primary-light); }
+    
+    .val-carbo { transition: color 0.2s; }
+    .show-alto .val-carbo { color: var(--carb-high); font-weight: 600; }
+    .show-baixo .val-carbo { color: var(--carb-low); font-weight: 600; }
+    
+    .base-label { display: inline-block; background: var(--surface-hover); padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: 700; color: var(--text); border: 1px solid var(--border); margin-right: 5px; margin-bottom: 5px;}
+    
+    .nested-options { list-style: none; padding-left: 0; margin-top: 0.5rem; }
+    .nested-options li { position: relative; padding-left: 1.5rem; margin-bottom: 0.8rem; line-height: 1.5; color: var(--text-secondary); }
+    .nested-options li::before { content: '👉'; position: absolute; left: 0; top: 0; font-size: 0.9rem; }
+    .nested-options strong { color: var(--text); }
+
+    .btn { background: var(--primary); color: white; border: none; padding: 1.25rem 2rem; border-radius: 12px; cursor: pointer; font-size: 1.05rem; font-weight: 600; width: 100%; margin-top: 1rem;}
+    .btn:hover { background: var(--primary-dark); transform: translateY(-3px); box-shadow: 0 6px 20px rgba(200, 29, 29, 0.5); }
+
+    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); z-index: 1000; align-items: center; justify-content: center; padding: 1.5rem; backdrop-filter: blur(4px); }
+    .modal.active { display: flex; }
+    .modal-content { background: var(--surface); border-radius: 20px; max-width: 900px; width: 100%; max-height: 90vh; display: flex; flex-direction: column; border: 1px solid var(--border); box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5); }
+    .modal-header { padding: 2rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+    .close-btn { background: var(--bg); border: 1px solid var(--border); color: var(--text); font-size: 1.5rem; cursor: pointer; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 10px; }
+    .modal-body { padding: 2rem; overflow-y: auto; }
+
+    .calendar-container { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1rem; margin-top: 1rem; }
+    .calendar-day { background: var(--surface); border: 2px solid var(--border); border-radius: 12px; padding: 1rem; min-height: 180px; transition: all 0.3s ease; }
+    .day-header { font-weight: 700; font-size: 0.9rem; margin-bottom: 0.5rem; color: var(--text-secondary); text-transform: uppercase; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem;}
+    .day-number { font-size: 1.2rem; font-weight: 700; margin-bottom: 1rem; }
+    .meal-preview { font-size: 0.85rem; margin-bottom: 0.5rem; padding: 0.5rem; background: var(--bg); border-radius: 8px; color: var(--text-secondary);}
+    .meal-preview strong { color: var(--text); }
+
+    .form-group { margin-bottom: 1.5rem; }
+    .form-group label { display: block; margin-bottom: 0.75rem; color: var(--text-secondary); font-weight: 600; font-size: 0.95rem; }
+    .form-group input, .form-group select { width: 100%; padding: 1rem; background: var(--bg); border: 2px solid var(--border); border-radius: 12px; color: var(--text); font-size: 16px; transition: all 0.3s ease; }
+    .form-group input:focus, .form-group select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(200, 29, 29, 0.1); }
+    .suggestions { background: var(--bg); border: 2px solid var(--border); border-top: 0; border-radius: 0 0 12px 12px; max-height: 200px; overflow-y: auto; }
+    .suggestion-item { padding: 1rem; cursor: pointer; transition: all 0.2s ease; border-bottom: 1px solid var(--border); }
+    .suggestion-item:last-child { border-bottom: none; }
+    .suggestion-item:hover { background: var(--surface-hover); padding-left: 1.5rem; }
+    .result-box { background: var(--bg); padding: 2rem; border-radius: 12px; border-left: 4px solid var(--primary); margin-top: 1.5rem; animation: slideIn 0.4s ease; }
+
+    .note-box { background: rgba(200, 29, 29, 0.08); border: 2px dashed var(--primary); padding: 1.5rem; border-radius: 12px; }
+
+    .taco-table { width: 100%; border-collapse: collapse; margin-top: 1rem; font-size: 0.85rem; color: var(--text); }
+    .taco-table th, .taco-table td { border: 1px solid var(--border); padding: 8px; text-align: left; }
+    .taco-table th { background: var(--bg); color: var(--primary); }
+
+    @media (max-width: 768px) {
+      .header { padding: 2rem 1rem; }
+      .header h1 { font-size: 2rem; }
+      .theme-toggle { top: 1rem; right: 1rem; width: 40px; height: 40px; }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 1rem; padding: 0 1rem; margin-top: -3rem; }
+      .stat-card { padding: 1.5rem 1rem; }
+      .container { padding: 3rem 1rem; }
+      .tabs { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 5px; }
+      .tools-grid { grid-template-columns: 1fr; }
+      .modal-content { height: 100vh; max-height: 100vh; width: 100%; border-radius: 0; }
+      .calendar-container { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body data-theme="dark">
+
+  <!-- ═══════ TELA DE LOGIN ═══════ -->
+  <div id="loginScreen">
+    <div class="login-card">
+      <div class="gate-ring">🔒</div>
+      <h2>Acesso Restrito</h2>
+      <p>Insira seu código de acesso para visualizar o planejamento estratégico.</p>
+      <input type="password" id="accessCode" placeholder="CÓDIGO DE ACESSO" onkeypress="handleLoginEnter(event)">
+      <button class="btn" onclick="verifyCode()">Acessar Protocolo</button>
+      <div id="loginError" class="error-msg">Código incorreto. Tente novamente.</div>
+    </div>
+  </div>
+
+  <!-- ═══════ CONTEÚDO PRINCIPAL ═══════ -->
+  <div id="mainContent">
+    <div class="header">
+      <button class="theme-toggle" onclick="toggleTheme()" aria-label="Alternar tema">
+        <span id="themeIcon">🌙</span>
+      </button>
+      <h1>💪 Recomposição Corporal</h1>
+      <p>Leandro Tecedor — Planejamento de Performance</p>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-label">Idade</div><div class="stat-value">33</div></div>
+      <div class="stat-card"><div class="stat-label">Peso</div><div class="stat-value">84 kg</div></div>
+      <div class="stat-card"><div class="stat-label">Altura</div><div class="stat-value">1,68 m</div></div>
+      <div class="stat-card"><div class="stat-label">Dieta Base</div><div class="stat-value">2500 kcal</div></div>
+      <div class="stat-card"><div class="stat-label">Hidratação</div><div class="stat-value">4 L</div></div>
+      <div class="stat-card"><div class="stat-label">Divisão</div><div class="stat-value" style="font-size:1.3rem;">5 Dias / AEJ</div></div>
+    </div>
+
+    <div class="container">
+      <section class="section">
+        <h2 class="section-title">🛠️ Ferramentas Rápidas</h2>
+        <div class="tools-grid">
+          <div class="tool-card" onclick="openModal('workout')">
+            <div class="tool-icon">🏋️</div>
+            <h3>Treino Biomecânico</h3>
+            <p>Periodização & Correção Epicondilite</p>
+          </div>
+          <div class="tool-card" onclick="openModal('suplementos')">
+            <div class="tool-icon">💊</div>
+            <h3>Suplementação</h3>
+            <p>Fármacos & Suporte TGI/Sono</p>
+          </div>
+          <div class="tool-card" onclick="openModal('calendar')">
+            <div class="tool-icon">📅</div>
+            <h3>Planejamento Semanal</h3>
+            <p>Ciclo de carboidratos</p>
+          </div>
+          <div class="tool-card" onclick="openModal('proteinas')">
+            <div class="tool-icon">🥩</div>
+            <h3>Guia de Proteínas</h3>
+            <p>Cortes e Trocas Especiais</p>
+          </div>
+          <div class="tool-card" onclick="openModal('fodmap')">
+            <div class="tool-icon">🥬</div>
+            <h3>Guia FODMAPs</h3>
+            <p>Gestão intestinal</p>
+          </div>
+          <div class="tool-card" onclick="openModal('calc')">
+            <div class="tool-icon">🧮</div>
+            <h3>Calculadora TACO+</h3>
+            <p>Substitua alimentos exatos</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2 class="section-title">🍽️ Plano Alimentar</h2>
+        
+        <div class="tabs">
+          <button class="tab active" onclick="showMeal(1, event)">Refeição 1</button>
+          <button class="tab" onclick="showMeal(2, event)">Refeição 2 (Almoço)</button>
+          <button class="tab" onclick="showMeal(3, event)">Refeição 3 (Tarde)</button>
+          <button class="tab" onclick="showMeal(4, event)">Refeição 4 (Noite)</button>
+          <button class="tab" style="background: rgba(200,29,29,0.1); border-color: var(--primary); color: var(--primary);" onclick="showMeal('strategy', event)">🔥 Diretrizes</button>
+        </div>
+
+        <!-- REFEIÇÃO 1 -->
+        <div class="meal-card active" id="meal1">
+          <div class="card">
+            <div class="meal-header">
+              <h3 class="meal-title">Refeição 1 — Desjejum (Proteína + Gordura)</h3>
+              <div class="meal-actions">
+                <button class="act-btn" onclick="togglePeso(this,'card1')">⚖️ Cru/Pronto</button>
+              </div>
+            </div>
+            <div id="card1">
+              <ul class="food-list">
+                <li class="food-item">
+                  <div class="food-item-header">
+                    <div class="food-icon" style="background:#3498db;">🍳</div>
+                    <div style="width:100%">
+                      <span class="base-label">OPÇÕES MONTADAS PRONTAS</span>
+                      <ul class="nested-options">
+                        <li><strong>Opção 1 (Padrão):</strong> 4 Ovos inteiros mexidos + 40g de Mussarela de Búfala. (Pode substituir o queijo por 15ml de Azeite Extra Virgem ou 45g de Coco Fresco).</li>
+                        <li><strong>Opção 2 (Sólida Frango):</strong> <strong class="peso-cru">140g (CRU)</strong><strong class="peso-pronto">100g (PRONTO)</strong> Peito de Frango desfiado ou grelhado + 30g de Castanha do Pará.</li>
+                      </ul>
+                    </div>
+                  </div>
+                </li>
+                <li class="food-item">
+                  <div class="food-item-header">
+                    <div class="food-icon" style="background:var(--carb-low); color:#000;">🔄</div>
+                    <div style="width:100%">
+                      <span class="base-label">OPÇÕES DE SUBSTITUIÇÃO</span>
+                      <ul class="nested-options">
+                        <li><strong>Substituição 1 (Líquida/Prática):</strong> 1 scoop (30g) de Whey Protein Isolado + 25g de Pasta de Amendoim Integral.</li>
+                      </ul>
+                    </div>
+                  </div>
+                </li>
+                <li class="food-item">
+                  <div class="food-item-header">
+                    <div class="food-icon" style="background:#4a3728;">☕</div>
+                    <div style="width:100%">
+                      <span class="base-label">ACOMPANHAMENTO</span>
+                      Café preto puro (sem açúcar) + Canela em pó.
+                    </div>
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- REFEIÇÃO 2 -->
+        <div class="meal-card" id="meal2">
+          <div class="card">
+            <div class="meal-header">
+              <h3 class="meal-title">Refeição 2 — Almoço (Carboidrato + Proteína)</h3>
+              <div class="meal-actions">
+                <button class="act-btn" onclick="togglePeso(this,'card2')">⚖️ Cru/Pronto</button>
+                <button class="act-btn active" onclick="setCarbo(this,'base','card2')">⏺️ Base</button>
+                <button class="act-btn alto" onclick="setCarbo(this,'alto','card2')">⬆️ Alto</button>
+                <button class="act-btn baixo" onclick="setCarbo(this,'baixo','card2')">⬇️ Baixo</button>
+              </div>
+            </div>
+            <div id="card2">
+              <ul class="food-list">
+                <li class="food-item">
+                  <div class="food-item-header">
+                    <div class="food-icon" style="background:var(--carb-high);">🍚</div>
+                    <div style="width:100%">
+                      <span class="base-label">OPÇÕES MONTADAS PRONTAS</span>
+                      <ul class="nested-options">
+                        <li style="color:var(--carb-high);"><strong>🔥 Opção 1:</strong><br>
+                          <span class="peso-cru val-carbo" data-base="100g (CRU)" data-alto="130g (CRU)" data-baixo="70g (CRU)">100g (CRU)</span><span class="peso-pronto val-carbo" data-base="300g (PRONTO)" data-alto="390g (PRONTO)" data-baixo="210g (PRONTO)">300g (PRONTO)</span> Arroz Branco cozido + 100g de Feijão cozido + <strong class="peso-cru">200g (CRU)</strong><strong class="peso-pronto">135g (PRONTO)</strong> Patinho Moído.</li>
+                        <li><strong>Opção 2:</strong><br>
+                          <span class="peso-cru val-carbo" data-base="265g (CRU)" data-alto="345g (CRU)" data-baixo="185g (CRU)">265g (CRU)</span><span class="peso-pronto val-carbo" data-base="350g (PRONTO)" data-alto="455g (PRONTO)" data-baixo="245g (PRONTO)">350g (PRONTO)</span> Mandioca cozida + <strong class="peso-cru">220g (CRU)</strong><strong class="peso-pronto">150g (PRONTO)</strong> Coxa ou Sobrecoxa de Frango grelhada (sem pele).</li>
+                      </ul>
+                    </div>
+                  </div>
+                </li>
+                <li class="food-item">
+                  <div class="food-item-header">
+                    <div class="food-icon" style="background:#3498db;">🔄</div>
+                    <div style="width:100%">
+                      <span class="base-label">OPÇÕES DE SUBSTITUIÇÃO</span>
+                      <ul class="nested-options">
+                        <li><strong>Substituição 1:</strong> <span class="peso-cru val-carbo" data-base="320g (CRU)" data-alto="415g (CRU)" data-baixo="225g (CRU)">320g (CRU)</span><span class="peso-pronto val-carbo" data-base="320g (ASSADO)" data-alto="415g (ASSADO)" data-baixo="225g (ASSADO)">320g (ASSADO)</span> Batata Inglesa/Branca + <strong class="peso-cru">200g (CRU)</strong><strong class="peso-pronto">150g (PRONTO)</strong> Filé de Merluza grelhado.</li>
+                        <li><strong>Substituição 2:</strong> <span class="peso-cru val-carbo" data-base="280g (CRU)" data-alto="365g (CRU)" data-baixo="195g (CRU)">280g (CRU)</span><span class="peso-pronto val-carbo" data-base="280g (COZIDO)" data-alto="365g (COZIDO)" data-baixo="195g (COZIDO)">280g (COZIDO)</span> Batata Doce + <strong class="peso-cru">200g (CRU)</strong><strong class="peso-pronto">135g (PRONTO)</strong> Coxão Mole.</li>
+                      </ul>
+                    </div>
+                  </div>
+                </li>
+                <li class="food-item">
+                  <div class="food-item-header">
+                    <div class="food-icon" style="background:var(--surface-hover); color:var(--text);">🥗</div>
+                    <div style="width:100%">
+                      <span class="base-label">MICRONUTRIÇÃO</span>
+                      Salada verde livre (alface, rúcula) + Limão espremido + 1 colher de sobremesa de Vinagre de Maçã antes da refeição. Use sal integral.
+                    </div>
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- REFEIÇÃO 3 -->
+        <div class="meal-card" id="meal3">
+          <div class="card">
+            <div class="meal-header">
+              <h3 class="meal-title">Refeição 3 — Tarde (Carboidrato + Proteína)</h3>
+              <div class="meal-actions">
+                <button class="act-btn" onclick="togglePeso(this,'card3')">⚖️ Cru/Pronto</button>
+                <button class="act-btn active" onclick="setCarbo(this,'base','card3')">⏺️ Base</button>
+                <button class="act-btn alto" onclick="setCarbo(this,'alto','card3')">⬆️ Alto</button>
+                <button class="act-btn baixo" onclick="setCarbo(this,'baixo','card3')">⬇️ Baixo</button>
+              </div>
+            </div>
+            <div id="card3">
+              <ul class="food-list">
+                <li class="food-item">
+                  <div class="food-item-header">
+                    <div class="food-icon" style="background:var(--carb-high);">🍠</div>
+                    <div style="width:100%">
+                      <span class="base-label">OPÇÕES MONTADAS PRONTAS</span>
+                      <ul class="nested-options">
+                        <li style="color:var(--carb-high);"><strong>🔥 Opção 1:</strong><br>
+                          <span class="peso-cru val-carbo" data-base="100g (CRU)" data-alto="130g (CRU)" data-baixo="70g (CRU)">100g (CRU)</span><span class="peso-pronto val-carbo" data-base="250g (PRONTO)" data-alto="325g (PRONTO)" data-baixo="175g (PRONTO)">250g (PRONTO)</span> Macarrão de Arroz cozido + <strong class="peso-cru">200g (CRU)</strong><strong class="peso-pronto">140g (PRONTO)</strong> Peito de Frango desfiado ao molho de tomate natural.</li>
+                        <li><strong>Opção 2:</strong><br>
+                          <span class="peso-cru val-carbo" data-base="300g (CRU)" data-alto="390g (CRU)" data-baixo="210g (CRU)">300g (CRU)</span><span class="peso-pronto val-carbo" data-base="300g (COZIDO)" data-alto="390g (COZIDO)" data-baixo="210g (COZIDO)">300g (COZIDO)</span> Batata Doce cozida + <strong class="peso-cru">200g (CRU)</strong><strong class="peso-pronto">135g (PRONTO)</strong> Patinho moído.</li>
+                      </ul>
+                    </div>
+                  </div>
+                </li>
+                <li class="food-item">
+                  <div class="food-item-header">
+                    <div class="food-icon" style="background:#3498db;">🔄</div>
+                    <div style="width:100%">
+                      <span class="base-label">OPÇÕES DE SUBSTITUIÇÃO</span>
+                      <ul class="nested-options">
+                        <li><strong>Substituição 1:</strong> <span class="peso-cru val-carbo" data-base="83g (CRU)" data-alto="108g (CRU)" data-baixo="58g (CRU)">83g (CRU)</span><span class="peso-pronto val-carbo" data-base="250g (PRONTO)" data-alto="325g (PRONTO)" data-baixo="175g (PRONTO)">250g (PRONTO)</span> Arroz Branco cozido + <strong class="peso-cru">200g (CRU)</strong><strong class="peso-pronto">135g (PRONTO)</strong> Iscas de Coxão Mole.</li>
+                        <li><strong>Substituição 2:</strong> <span class="val-carbo" style="font-weight:bold; color:var(--primary-light);" data-base="70g" data-alto="91g" data-baixo="49g">70g</span> de Creme de Arroz em pó ou Aveia em flocos + 2 scoops (60g) de Whey Protein Isolado.</li>
+                      </ul>
+                    </div>
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- REFEIÇÃO 4 -->
+        <div class="meal-card" id="meal4">
+          <div class="card">
+            <div class="meal-header">
+              <h3 class="meal-title">Refeição 4 — Noite / Ceia (Carbo + Prot + Lipídios Calibrados)</h3>
+              <div class="meal-actions">
+                <button class="act-btn" onclick="togglePeso(this,'card4')">⚖️ Cru/Pronto</button>
+                <button class="act-btn active" onclick="setCarbo(this,'base','card4')">⏺️ Base</button>
+                <button class="act-btn alto" onclick="setCarbo(this,'alto','card4')">⬆️ Alto</button>
+                <button class="act-btn baixo" onclick="setCarbo(this,'baixo','card4')">⬇️ Baixo</button>
+              </div>
+            </div>
+            <div id="card4">
+              <ul class="food-list">
+                <li class="food-item">
+                  <div class="food-item-header">
+                    <div class="food-icon" style="background:var(--primary);">🍔</div>
+                    <div style="width:100%">
+                      <span class="base-label">OPÇÕES MONTADAS PRONTAS</span>
+                      <ul class="nested-options">
+                        <li><strong>Opção 1 (Sanduíche de Contra-Filé):</strong><br>
+                          <span class="val-carbo" style="font-weight:bold; color:var(--primary-light);" data-base="2 unidades (100g)" data-alto="2 unidades (100g)" data-baixo="1 unidade (50g)">2 unidades (100g)</span> de Pão Francês + <strong class="peso-cru">180g (CRU)</strong><strong class="peso-pronto">130g (PRONTO)</strong> de Contra-Filé grelhado (limpo, sem gordura visível) dentro do pão. (Pode usar frango desfiado se preferir).</li>
+                        <li><strong>Opção 2 (Cuscuz Noturno):</strong><br>
+                          <span class="peso-cru val-carbo" data-base="70g (CRU)" data-alto="91g (CRU)" data-baixo="49g (CRU)">70g (CRU)</span><span class="peso-pronto val-carbo" data-base="200g (PRONTO)" data-alto="260g (PRONTO)" data-baixo="140g (PRONTO)">200g (PRONTO)</span> Cuscuz de Milho cozido no vapor + 3 Ovos inteiros mexidos + 4 Claras de ovos.</li>
+                      </ul>
+                    </div>
+                  </div>
+                </li>
+                <li class="food-item">
+                  <div class="food-item-header">
+                    <div class="food-icon" style="background:#3498db;">🔄</div>
+                    <div style="width:100%">
+                      <span class="base-label">OPÇÕES DE SUBSTITUIÇÃO</span>
+                      <ul class="nested-options">
+                        <li><strong>Substituição 1:</strong> <span class="val-carbo" style="font-weight:bold; color:var(--primary-light);" data-base="80g (GOMA)" data-alto="104g (GOMA)" data-baixo="56g (GOMA)">80g (GOMA)</span> de Tapioca recheada com <strong class="peso-cru">180g (CRU)</strong><strong class="peso-pronto">125g (PRONTO)</strong> de Frango desfiado + 1 Banana média fatiada com canela em pó por cima.</li>
+                        <li><strong>Substituição 2:</strong> 4 fatias de Pão de Forma Integral + <strong class="peso-cru">180g (CRU)</strong><strong class="peso-pronto">125g (PRONTO)</strong> de Peito de Frango desfiado + 20g de Mussarela de Búfala derretida.</li>
+                      </ul>
+                    </div>
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- DIRETRIZES -->
+        <div class="meal-card" id="mealstrategy">
+          <div class="card">
+            <div class="meal-header">
+              <h3 class="meal-title">🔥 Diretrizes de Gestão Semanal</h3>
+              <span class="meal-badge" style="background:var(--surface-hover); color:var(--text);">Controle de Carga</span>
+            </div>
+            
+            <div class="options-grid" style="grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); margin-bottom:2rem;">
+              <div class="option-card" style="text-align:center; border-color:var(--carb-low);">
+                <h5 style="color:var(--carb-low);">Dia Baixo (-15%)</h5>
+                <div style="font-size:2rem; font-weight:700; color:var(--carb-low);">2.125 <span style="font-size:1rem">kcal</span></div>
+                <p style="font-size:0.8rem; color:var(--text-secondary); margin-top:0.3rem;">Executado nos dias de OFF / AEJ</p>
+              </div>
+              <div class="option-card" style="text-align:center; border-color:var(--primary); background:rgba(200,29,29,0.05);">
+                <h5 style="color:var(--primary);">Dia Base</h5>
+                <div style="font-size:2.2rem; font-weight:700; color:var(--primary);">2.500 <span style="font-size:1rem">kcal</span></div>
+                <p style="font-size:0.8rem; color:var(--text-secondary); margin-top:0.3rem;">Dias normais de Musculação</p>
+              </div>
+              <div class="option-card" style="text-align:center; border-color:var(--carb-high);">
+                <h5 style="color:var(--carb-high);">Dia Alto (+15%)</h5>
+                <div style="font-size:2rem; font-weight:700; color:var(--carb-high);">2.875 <span style="font-size:1rem">kcal</span></div>
+                <p style="font-size:0.8rem; color:var(--text-secondary); margin-top:0.3rem;">Dias de treinos Pesados (Pernas / Ombros)</p>
+              </div>
+            </div>
+
+            <div class="subsection">
+              <h4>🔄 Protocolo de Modulação das Gramaturas</h4>
+              <ul style="padding-left:1.5rem; line-height:1.8; color:var(--text-secondary);">
+                <li>As opções montadas nas tabelas representam o seu **Dia Base (2.500 kcal)**.</li>
+                <li>Nos dias de **CARBO ALTO**, aumente o peso de todas as fontes de carboidrato complexo das refeições 2, 3 e 4 em **30%** (os pães da R4 se mantêm estáveis em 2 unidades).</li>
+                <li>Nos dias de **CARBO BAIXO (OFF)**, reduza o peso de todas as fontes de carboidrato complexo das refeições 2, 3 e 4 em **30%**. Na R4, reduza a dose para apenas 1 pão francês (50g).</li>
+                <li><strong>Refeição Livre:</strong> Substitua a primeira e a última refeição do dia por 1 (uma) refeição livre à sua escolha, sempre em um dia de Carbo Alto. Dê preferência a produtos com menor concentração de gordura como pizza, hambúrguer artesanal, evitando fritura em excesso.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- MODAIS (TREINO, SUPLEMENTOS, CALENDARIO, ETC) -->
+    <!-- MODAL TREINO -->
+    <div id="workoutModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>🏋️ Treino Biomecânico Adaptado — 5 Treinos Semanais</h2>
+          <button class="close-btn" onclick="closeModal('workout')">✕</button>
+        </div>
+        <div class="modal-body">
+          
+          <div class="note-box" style="margin-top:0; margin-bottom:2rem; border-color:#e74c3c; background:rgba(231,76,60,0.1);">
+            <h4 style="margin-bottom:0.5rem; color:#e74c3c;">⚠️ Observações Mecânicas e Cardio</h4>
+            <ul style="padding-left:1.5rem; color:var(--text-secondary); line-height:1.8;">
+              <li><strong>Epicondilite Bilateral:</strong> Proibido o uso de pegadas estritamente pronadas pesadas em puxadas e roscas. Utilizar exclusivamente pegada neutra (triângulos, barras adaptadas ou halteres em formato martelo) para zerar o torque lesivo nos tendões dos braços.</li>
+              <li><strong>Cardio (AEJ):</strong> Nos dias de OFF (descanso da musculação), realizar 40 minutos de Aeróbico em Jejum (passos rápidos e contínuo sem corrida ou trote) — Pelo menos 2 dias na semana.</li>
+            </ul>
+          </div>
+
+          <div class="subsection" style="margin-top:0; padding:1.5rem; border-left: 4px solid var(--carb-high);">
+            <h4 style="color:var(--carb-high);">📊 Periodização</h4>
+            <ul style="padding-left:1.5rem; color:var(--text-secondary); line-height:1.8;">
+              <li><strong>Primeira Semana (Carga):</strong> 4 a 5 sets de 6-8 reps. | Intervalo: 1min30 a 2min. | Cadência: 1s Concêntrica / 2s Excêntrica.</li>
+              <li><strong>Segunda e Terceira Semana (Priorize movimentos):</strong> 3 a 4 sets de 10-12 reps. | Intervalo: 1min. | Cadência: 1s Concêntrica / 1-2s Excêntrica.</li>
+              <li><strong>Quarta Semana:</strong> 2 a 3 sets de 15-25 reps. | Intervalo: 30-45s. | Cadência: 1s Concêntrica / 1s Excêntrica.</li>
+              <li><em>Nota:</em> Alterne barra, halter e máquina a cada sessão. Em dias de sono ruim ou trabalho exaustivo, treine submáximo ou descanse.</li>
+            </ul>
+          </div>
+
+          <div class="subsection" style="cursor:pointer;" onclick="toggleWorkout('a')">
+            <h4 style="display:flex; justify-content:space-between; align-items:center;">Treino A: Dorsal e Serrátil <span id="arrowa">▼</span></h4>
+            <div id="workouta" style="display:none; margin-top:1rem;">
+              <ol style="padding-left:1.5rem; color:var(--text-secondary); line-height:1.8;">
+                <li>Puxada Aberta com pegada neutra</li>
+                <li>Remada com barra pegada pronada (⚠️ Cuidado com a carga devido à epicondilite - se doer, alterne para supinada/neutra)</li>
+                <li>Remada com halter unilateral</li>
+                <li>Puxada Fechada com Triângulo — pegada neutra</li>
+                <li>Pulldown com corda ou barra</li>
+                <li>Serrátil - Rotação de tronco cabo ou anilha/halter </li>
+              </ol>
+            </div>
+          </div>
+
+          <div class="subsection" style="cursor:pointer;" onclick="toggleWorkout('b')">
+            <h4 style="display:flex; justify-content:space-between; align-items:center;">Treino B: Pernas e Panturrilha <span id="arrowb">▼</span></h4>
+            <div id="workoutb" style="display:none; margin-top:1rem;">
+              <ol style="padding-left:1.5rem; color:var(--text-secondary); line-height:1.8;">
+                <li>Cadeira Extensora (2 séries de 8 reps, peso leve com isometria de 2 seg para ativar o quadríceps e evitar dor no joelho)</li>
+                <li>Agachamento Livre, Hack ou Smith (priorizar biomecânica)</li>
+                <li>Leg Press 45°</li>
+                <li>Cadeira Extensora (Série oficial)</li>
+                <li>Stiff com Halteres ou Barra</li>
+                <li>Cadeira Flexora Sentada ou Mesa Flexora (escolher 1 por sessão)</li>
+                <li>Elevação Pélvica Máquina ou Barra (foco glúteo)</li>
+                <li>Panturrilha em Pé na Máquina ou Livre</li>
+                <li>Panturrilha Sentada na Máquina</li>
+              </ol>
+            </div>
+          </div>
+
+          <div class="subsection" style="cursor:pointer;" onclick="toggleWorkout('c')">
+            <h4 style="display:flex; justify-content:space-between; align-items:center;">Treino C: Peito<span id="arrowc">▼</span></h4>
+            <div id="workoutc" style="display:none; margin-top:1rem;">
+              <ol style="padding-left:1.5rem; color:var(--text-secondary); line-height:1.8;">
+                <li>Supino inclinado com Halteres ou máquina</li>
+                <li>Supino Halter ou Máquina (Reto)</li>
+                <li>Crucifixo Inclinado Halter, Cabo ou máquina</li>
+                <li>Supino declinado</li>
+              </ol>
+            </div>
+          </div>
+
+          <div class="subsection" style="cursor:pointer;" onclick="toggleWorkout('d')">
+            <h4 style="display:flex; justify-content:space-between; align-items:center;">Treino D: Bíceps, Tríceps e Antebraço <span id="arrowd">▼</span></h4>
+            <div id="workoutd" style="display:none; margin-top:1rem;">
+              <ol style="padding-left:1.5rem; color:var(--text-secondary); line-height:1.8;">
+                <li>Tríceps no Pulley com Corda (cotovelo fixo, sem extensão total forçada)</li>
+                <li>Tríceps uni na polia (Foco tríceps)</li>
+                <li>Tríceps frances na polia ou mergulho no banco (Livre)</li>
+                <li>Rosca Direta com Halter ou Cabo (sem supinação forçada)</li>
+                <li>Rosca Martelo ou Rosca no Cabo com Corda</li>
+                <li>Rosca Concentrada, Rosca Spider ou Rosca Scott na máquina</li>
+                <li> Extensão de punho com halter 2 variações (Antebraço)</li>
+              </ol>
+            </div>
+          </div>
+          
+          <div class="subsection" style="cursor:pointer;" onclick="toggleWorkout('e')">
+            <h4 style="display:flex; justify-content:space-between; align-items:center;">Treino E: Ombro e Abdominal <span id="arrowe">▼</span></h4>
+            <div id="workoute" style="display:none; margin-top:1rem;">
+              <ol style="padding-left:1.5rem; color:var(--text-secondary); line-height:1.8;">
+                <li>Face pull</li>
+                <li>Desenvolvimento com Halteres ou Barra (frontal)</li>
+                <li>Elevação Lateral — Halteres, Cabo ou Máquina (em 1 das semanas de concentração faça no banco inclinado unilateral)</li>
+                <li>Crucifixo Inverso ou Voador Inverso (deltóide posterior)</li>
+                <li>Encolhimento com Halteres para Trapézio (sem Remada Alta)</li>
+                <li>Abdominal Supra — prancha declinada ou solo</li>
+                <li>Abdominal Infra — apoiado ou pendurado na barra fixa</li>
+              </ol>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL SUPLEMENTOS -->
+    <div id="suplementosModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>💊 Protocolo de Suplementação Estratégica</h2>
+          <button class="close-btn" onclick="closeModal('suplementos')">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="subsection" style="border-left-color:#3498db;">
+            <h4 style="color:#3498db; margin-bottom:1rem;">☀️ MANHÃ (30 min após a primeira refeição)</h4>
+            <ul style="list-style:none; padding-left:0; line-height:1.8; color:var(--text);">
+              <li style="margin-bottom:0.8rem; border-bottom:1px solid var(--border); padding-bottom:0.8rem;">
+                <strong>Vitamina D3 8000UI + Vitamina K2MK7 + Metilcobalamina:</strong> Tomar 1 dose.
+              </li>
+              <li style="margin-bottom:0.8rem; border-bottom:1px solid var(--border); padding-bottom:0.8rem;">
+                <strong>Ômega 3:</strong> 2g.
+              </li>
+            </ul>
+
+            <h4 style="color:#2ecc71; margin-top:2rem; margin-bottom:1rem; border-top:2px solid var(--border); padding-top:1.5rem;">⚡ PÓS-REFEIÇÃO CARBOIDRATO</h4>
+            <ul style="list-style:none; padding-left:0; line-height:1.8; color:var(--text);">
+              <li style="margin-bottom:0.8rem;">
+                <strong>Creatina:</strong> Tomar após a primeira refeição de carbo. Dias de treino (ON) tomar 5g. Dias de descanso (OFF) tomar 3g.
+              </li>
+            </ul>
+
+            <h4 style="color:#a01515; margin-top:2rem; margin-bottom:1rem; border-top:2px solid var(--border); padding-top:1.5rem;">🌙 NOITE ( toma 30 min antes de dormir )</h4>
+            <ul style="list-style:none; padding-left:0; line-height:1.8; color:var(--text);">
+              <li style="margin-bottom:0.8rem; border-bottom:1px solid var(--border); padding-bottom:0.8rem;">
+                <strong>Metformina (Glifage XR):</strong> Primeira semana tomar 500mg. Após isso, aumentar para 1g. Se tiver colaterais (diarreia por mais de 1 dia), cortar ou reduzir.
+              </li>
+              <li style="margin-bottom:0.8rem; border-bottom:1px solid var(--border); padding-bottom:0.8rem;">
+                <strong>Ashwagandha:</strong> Tomar 1 cápsula de 350mg. (Quando precisar sair à noite para o trabalho, tomar 250mg antes de sair e 350mg após voltar).
+              </li>
+              <li style="margin-bottom:0.8rem; border-bottom:1px solid var(--border); padding-bottom:0.8rem;">
+                <strong>Melatonina SL:</strong> 2 comprimidos (2mg) sublinguais.
+              </li>
+              <li style="margin-bottom:0.8rem;">
+                <strong>MAGNÉSIO BISGLICINATO 300MG + MAGNÉSIO L TREONATO 200MG + ZINCO 30MG + VIT C 700MG:</strong> Tomar 1 dose.
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CALENDÁRIO -->
+    <div id="calendarModal" class="modal">
+      <div class="modal-content" style="max-width:1200px;">
+        <div class="modal-header">
+          <h2>📅 Divisão de Modulação Semanal</h2>
+          <button class="close-btn" onclick="closeModal('calendar')">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="calendar-container">
+            <div class="calendar-day" style="border-color:var(--primary); background:rgba(200,29,29,0.02);"><div class="day-header">Dia 1</div><div class="day-number" style="color:var(--primary);">BASE</div><div class="meal-preview"><strong>Treino A</strong></div><div class="meal-preview">Dorsal e Serrátil</div></div>
+            <div class="calendar-day" style="border-color:var(--carb-high); background:rgba(46,204,113,0.05);"><div class="day-header">Dia 2</div><div class="day-number" style="color:var(--carb-high);">ALTO</div><div class="meal-preview"><strong>Treino B</strong></div><div class="meal-preview">Pernas e Panturrilha</div></div>
+            <div class="calendar-day" style="border-color:var(--carb-low); background:rgba(241,196,15,0.05);"><div class="day-header">Dia 3</div><div class="day-number" style="color:var(--carb-low);">BAIXO</div><div class="meal-preview">OFF / 40m AEJ</div></div>
+            <div class="calendar-day" style="border-color:var(--primary); background:rgba(200,29,29,0.02);"><div class="day-header">Dia 4</div><div class="day-number" style="color:var(--primary);">BASE</div><div class="meal-preview"><strong>Treino C</strong></div><div class="meal-preview">Peito </div></div>
+            <div class="calendar-day" style="border-color:var(--primary); background:rgba(200,29,29,0.02);"><div class="day-header">Dia 5</div><div class="day-number" style="color:var(--primary);">BASE</div><div class="meal-preview"><strong>Treino D</strong></div><div class="meal-preview">Bíceps, Tríceps e Antebraço</div></div>
+            <div class="calendar-day" style="border-color:var(--carb-high); background:rgba(46,204,113,0.05);"><div class="day-header">Dia 6</div><div class="day-number" style="color:var(--carb-high);">ALTO</div><div class="meal-preview"><strong>Treino E</strong></div><div class="meal-preview">Ombro e Abdominal</div></div>
+            <div class="calendar-day" style="border-color:var(--carb-low); background:rgba(241,196,15,0.05);"><div class="day-header">Dia 7</div><div class="day-number" style="color:var(--carb-low);">BAIXO</div><div class="meal-preview">OFF / 40m AEJ</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL PROTEÍNAS -->
+    <div id="proteinasModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>🥩 Guia de Fontes de Proteínas e Lipídios</h2>
+          <button class="close-btn" onclick="closeModal('proteinas')">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="subsection" style="border-left-color:#2ecc71;">
+            <h4 style="color:#2ecc71;">✅ Fontes de Proteínas Liberadas</h4>
+            <ul style="list-style:none; line-height:1.8;">
+              <li><strong>🐔 Aves:</strong> Peito de Frango, Coxa/Sobrecoxa SEM pele.</li>
+              <li><strong>🥩 Bovinos:</strong> Patinho Moído, Coxão Mole, Contra-Filé (limpo).</li>
+              <li><strong>🐟 Peixes Permitidos:</strong> Consumir exclusivamente Filé de Merluza. Proibido camarão e outros frutos do mar devido à alergia.</li>
+            </ul>
+          </div>
+          <div class="subsection" style="border-left-color:var(--carb-low); margin-top:1.5rem;">
+            <h4 style="color:var(--carb-low);">🔶 Proteínas Gordas — Refeição (Zero Carbo)</h4>
+            <p style="margin-bottom:1rem; font-size:0.9rem; color:var(--text-secondary);">Cortes ricos em colágeno, gorduras estruturais e ômega-3 para suporte hormonal noturno.</p>
+            <ul style="list-style:none; line-height:1.8;">
+              <li><strong>🥩 Bovinos com Colágeno:</strong> Músculo, Acém, Maminha, Contra-Filé, Picanha</li>
+              <li><strong>🐷 Suíno:</strong> Lombo com capa de gordura, Bisteca</li>
+              <li><strong>🐟 Peixes Gordos:</strong> Salmão (ômega-3), Sardinha</li>
+            </ul>
+            <p style="margin-top:1rem; font-size:0.85rem; color:var(--primary);">⚠️ Salmão e Porco: preparar em fogo baixo/médio — não refogar em alta temperatura.</p>
+          </div>
+          <h4 style="margin-top: 2rem; color: var(--primary);">📊 Referência Rápida TACO (por 100g cru)</h4>
+          <table class="taco-table" style="width: 100%; border-collapse: collapse; margin-top: 1rem; font-size: 0.85rem; color: var(--text);">
+            <tr><th style="border: 1px solid var(--border); padding: 8px; background: var(--bg); color: var(--primary);">Alimento</th><th style="border: 1px solid var(--border); padding: 8px; background: var(--bg); color: var(--primary);">Kcal</th><th style="border: 1px solid var(--border); padding: 8px; background: var(--bg); color: var(--primary);">Prot</th><th style="border: 1px solid var(--border); padding: 8px; background: var(--bg); color: var(--primary);">Lip</th></tr>
+            <tr><td style="border: 1px solid var(--border); padding: 8px;">Peito de Frango</td><td style="border: 1px solid var(--border); padding: 8px;">163</td><td style="border: 1px solid var(--border); padding: 8px;">32g</td><td style="border: 1px solid var(--border); padding: 8px;">2,5g</td></tr>
+            <tr><td style="border: 1px solid var(--border); padding: 8px;">Patinho</td><td style="border: 1px solid var(--border); padding: 8px;">195</td><td style="border: 1px solid var(--border); padding: 8px;">36g</td><td style="border: 1px solid var(--border); padding: 8px;">4,5g</td></tr>
+            <tr><td style="border: 1px solid var(--border); padding: 8px;">Coxão Mole</td><td style="border: 1px solid var(--border); padding: 8px;">212</td><td style="border: 1px solid var(--border); padding: 8px;">36g</td><td style="border: 1px solid var(--border); padding: 8px;">6g</td></tr>
+            <tr><td style="border: 1px solid var(--border); padding: 8px;">Contra-Filé (Limpo)</td><td style="border: 1px solid var(--border); padding: 8px;">206</td><td style="border: 1px solid var(--border); padding: 8px;">30g</td><td style="border: 1px solid var(--border); padding: 8px;">8g</td></tr>
+            <tr><td style="border: 1px solid var(--border); padding: 8px;">Picanha (Limpa)</td><td style="border: 1px solid var(--border); padding: 8px;">213</td><td style="border: 1px solid var(--border); padding: 8px;">29g</td><td style="border: 1px solid var(--border); padding: 8px;">9g</td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div id="fodmapModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>🥬 Guia FODMAPs</h2>
+          <button class="close-btn" onclick="closeModal('fodmap')">✕</button>
+        </div>
+        <div class="modal-body">
+          <p style="color:var(--text-secondary); margin-bottom:1.5rem;">Modulação intestinal é essencial. Intestino inflamado reduz absorção e prejudica resposta hormonal. Leandro relatou consumo de feijão, use com cautela se sentir gases.</p>
+          <div class="options-grid">
+            <div class="option-card" style="border-color:#2ecc71;">
+              <h5 style="color:#2ecc71;">✅ Seguros — Use à Vontade</h5>
+              <ul style="padding-left:1.2rem; font-size:0.9rem; line-height:1.8;">
+                <li><strong>Brócolis</strong> — excelente aliado</li>
+                <li>Abobrinha (zucchini)</li>
+                <li>Pepino (sem casca)</li>
+                <li>Espinafre</li>
+                <li>Vagem</li>
+                <li>Alface, Rúcula, Agrião</li>
+                <li>Cenoura</li>
+                <li>Chuchu</li>
+              </ul>
+            </div>
+            <div class="option-card" style="border-color:var(--carb-low);">
+              <h5 style="color:var(--carb-low);">⚠️ Moderar (com cautela)</h5>
+              <ul style="padding-left:1.2rem; font-size:0.9rem; line-height:1.8;">
+                <li>Tomate (pequenas qtd)</li>
+                <li>Alho cru em excesso</li>
+                <li>Couve-flor (pode fermentar)</li>
+                <li>Beterraba</li>
+              </ul>
+            </div>
+            <div class="option-card" style="border-color:var(--primary);">
+              <h5 style="color:var(--primary);">❌ Restringir — Fermentadores</h5>
+              <ul style="padding-left:1.2rem; font-size:0.9rem; line-height:1.8;">
+                <li><strong>Feijão em grande volume</strong> (se gerar desconforto, reduza ou elimine)</li>
+                <li>Laticínios ricos em lactose</li>
+                <li>Cebola crua em grande qtd</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CALCULADORA TACO -->
+    <div id="calcModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>🧮 Calculadora TACO+</h2>
+          <button class="close-btn" onclick="closeModal('calc')">✕</button>
+        </div>
+        <div class="modal-body">
+          <p style="color:var(--text-secondary); margin-bottom:1.5rem;">Descubra equivalências exatas cruzando o peso do alimento cru vs cozido.</p>
+          <div class="form-group" style="background:rgba(255,255,255,0.05); padding:1rem; border-radius:12px; border:1px solid var(--border);">
+            <label style="color:var(--text);">Modo de Cálculo:</label>
+            <select id="calcMode" style="background:var(--surface); color:var(--primary); font-weight:bold; border-color:var(--border);">
+              <option value="kcal" selected>Equivalência por Calorias (Kcal) — PADRÃO</option>
+              <option value="prot">Equivalência por Proteína (g)</option>
+              <option value="carb">Equivalência por Carboidrato (g)</option>
+              <option value="lip">Equivalência por Gordura (g)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>De (Alimento de Origem):</label>
+            <input type="text" id="fromName" placeholder="Ex: Arroz Branco..." oninput="showSuggestions('from')" autocomplete="off">
+            <div id="fromSuggestions" class="suggestions"></div>
+          </div>
+          <div class="form-group">
+            <label>Quantidade (em gramas):</label>
+            <input type="number" id="fromGrams" value="100">
+          </div>
+          <div class="form-group">
+            <label>Para (Alimento Substituto):</label>
+            <input type="text" id="toName" placeholder="Ex: Cuscuz..." oninput="showSuggestions('to')" autocomplete="off">
+            <div id="toSuggestions" class="suggestions"></div>
+          </div>
+          <button class="btn" onclick="calculate()">Calcular Substituição</button>
+          <div id="calcResult"></div>
+        </div>
+      </div>
+    </div>
+
+  </div> <!-- FIM MAIN CONTENT -->
+
+  <script>
+    /* ═══════ SISTEMA DE LOGIN ═══════ */
+    const ACCESS_CODE = "LEANDRO2026";
+
+    function verifyCode() {
+      const input = document.getElementById('accessCode').value.trim().toUpperCase();
+      const errorMsg = document.getElementById('loginError');
+      
+      if (input === ACCESS_CODE) {
+        sessionStorage.setItem('auth_leandro_protocol', 'true');
+        unlockApp();
+      } else {
+        errorMsg.style.display = 'block';
+        document.getElementById('accessCode').value = '';
+        document.getElementById('accessCode').focus();
+      }
+    }
+
+    function handleLoginEnter(e) {
+      if (e.key === 'Enter') verifyCode();
+    }
+
+    function unlockApp() {
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('mainContent').style.display = 'block';
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      if (sessionStorage.getItem('auth_leandro_protocol') === 'true') {
+        unlockApp();
+      }
+    });
+
+    /* ═══════ RESTANTE DO SCRIPT ORIGINAL ═══════ */
+    const tacoDB = {
+      "peito de frango cru": { nome:"Peito de Frango (Cru)", prot:32.0, carb:0, lip:2.5, kcal:163 },
+      "peito de frango cozido": { nome:"Peito de Frango (Grelhado)", prot:31.5, carb:0, lip:3.2, kcal:159 },
+      "patinho cru": { nome:"Patinho (Cru)", prot:35.9, carb:0, lip:4.5, kcal:195 },
+      "patinho cozido": { nome:"Patinho (Grelhado)", prot:32.0, carb:0, lip:7.0, kcal:210 },
+      "contra file limpo cru": { nome:"Contra-Filé Limpo (Cru)", prot:30.0, carb:0, lip:8.0, kcal:206 },
+      "picanha limpa crua": { nome:"Picanha Limpa (Crua)", prot:29.0, carb:0, lip:9.0, kcal:213 },
+      "coxao mole cru": { nome:"Coxão Mole (Cru)", prot:36.0, carb:0, lip:6.0, kcal:212 },
+      "coxa sobrecoxa crua": { nome:"Coxa c/ Sobrecoxa s/ pele (Crua)", prot:17.0, carb:0, lip:10.0, kcal:162 },
+      "merluza crua": { nome:"Merluza (Crua)", prot:17.0, carb:0, lip:1.0, kcal:80 },
+      "ovo inteiro": { nome:"Ovo Inteiro", prot:13.0, carb:1.0, lip:11.0, kcal:155 },
+      "clara de ovo": { nome:"Clara de Ovo (Pasteurizada)", prot:10.9, carb:0.0, lip:0.0, kcal:48 },
+      "whey isolado": { nome:"Whey Protein Isolado", prot:85.0, carb:2.0, lip:1.0, kcal:360 },
+      "arroz branco cru": { nome:"Arroz Branco (Cru)", prot:7.0, carb:78.0, lip:0.3, kcal:344 },
+      "arroz branco cozido": { nome:"Arroz Branco (Cozido)", prot:2.5, carb:28.0, lip:0.2, kcal:128 },
+      "macarrao de arroz cru": { nome:"Macarrão de Arroz (Cru)", prot:3.0, carb:80.0, lip:0.5, kcal:366 },
+      "macarrao cozido": { nome:"Macarrão (Cozido)", prot:2.0, carb:24.0, lip:0.1, kcal:105 },
+      "mandioca crua": { nome:"Mandioca (Crua)", prot:1.0, carb:38.0, lip:0.3, kcal:164 },
+      "mandioca cozida": { nome:"Mandioca (Cozida)", prot:0.6, carb:30.0, lip:0.1, kcal:125 },
+      "batata doce crua": { nome:"Batata Doce (Crua)", prot:1.6, carb:18.0, lip:0.1, kcal:77 },
+      "batata doce cozida": { nome:"Batata Doce (Cozida)", prot:1.2, carb:20.0, lip:0.1, kcal:86 },
+      "batata inglesa crua": { nome:"Batata Inglesa (Crua)", prot:2.0, carb:17.0, lip:0.1, kcal:76 },
+      "batata inglesa cozida": { nome:"Batata Inglesa (Cozida)", prot:1.5, carb:16.0, lip:0.1, kcal:70 },
+      "aveia em flocos": { nome:"Aveia em Flocos", prot:11.0, carb:66.0, lip:7.0, kcal:394 },
+      "creme de arroz": { nome:"Creme de Arroz / Farinha", prot:7.0, carb:78.0, lip:1.0, kcal:350 },
+      "tapioca": { nome:"Goma de Tapioca", prot:0.0, carb:60.0, lip:0.0, kcal:240 },
+      "cuscuz cozido": { nome:"Cuscuz (Cozido)", prot:3.0, carb:23.0, lip:0.5, kcal:112 },
+      "pao frances": { nome:"Pão Francês", prot:9.0, carb:58.0, lip:3.0, kcal:280 },
+      "feijao cozido": { nome:"Feijão (Cozido)", prot:4.5, carb:14.0, lip:0.5, kcal:76 },
+      "banana": { nome:"Banana", prot:1.3, carb:26.0, lip:0.3, kcal:98 },
+      "azeite": { nome:"Azeite Extra Virgem", prot:0, carb:0, lip:100.0, kcal:900 },
+      "pasta de amendoim": { nome:"Pasta de Amendoim Integral", prot:24.0, carb:22.0, lip:48.0, kcal:580 },
+      "castanha do para": { nome:"Castanha do Pará", prot:14.0, carb:12.0, lip:61.0, kcal:656 },
+      "coco fresco": { nome:"Coco Fresco", prot:3.0, carb:6.0, lip:30.0, kcal:300 }
+    };
+
+    function toggleTheme() {
+      const body = document.body;
+      body.setAttribute('data-theme', body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+    }
+
+    function showMeal(num, event) {
+      document.querySelectorAll('.meal-card').forEach(card => card.classList.remove('active'));
+      const target = document.getElementById('meal' + num) || document.getElementById('mealstrategy');
+      if(target) target.classList.add('active');
+      document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+      event.target.classList.add('active');
+    }
+
+    function openModal(id) { document.getElementById(id + 'Modal').classList.add('active'); }
+    function closeModal(id) { document.getElementById(id + 'Modal').classList.remove('active'); }
+
+    function togglePeso(btn, cardId) { 
+      const card = document.getElementById(cardId);
+      card.classList.toggle('show-pronto'); 
+      btn.innerText = card.classList.contains('show-pronto') ? '⚖️ Mostrar Cru' : '⚖️ Cru/Pronto';
+    }
+
+    function setCarbo(btn, state, cardId) {
+      const card = document.getElementById(cardId);
+      btn.closest('.meal-actions').querySelectorAll('.act-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      card.classList.remove('show-alto', 'show-baixo');
+      if (state === 'alto') card.classList.add('show-alto');
+      if (state === 'baixo') card.classList.add('show-baixo');
+      
+      card.querySelectorAll('.val-carbo').forEach(val => { 
+        val.textContent = val.getAttribute('data-' + state); 
+      });
+    }
+
+    function toggleWorkout(letter) {
+      const content = document.getElementById('workout' + letter);
+      content.style.display = content.style.display === 'none' ? 'block' : 'none';
+      const arrow = document.getElementById('arrow' + letter);
+      if (arrow) {
+        arrow.textContent = content.style.display === 'block' ? '▲' : '▼';
+      }
+    }
+
+    function showSuggestions(target) {
+      const input = document.getElementById(target + 'Name');
+      const container = document.getElementById(target + 'Suggestions');
+      const val = input.value.toLowerCase().trim();
+      container.innerHTML = '';
+      if (val.length < 1) { container.style.border = 'none'; return; }
+      const keys = Object.keys(tacoDB).filter(k => k.includes(val) || tacoDB[k].nome.toLowerCase().includes(val)).slice(0, 6);
+      if (keys.length > 0) container.style.border = '2px solid var(--border)';
+      else container.style.border = 'none';
+      keys.forEach(k => {
+        const div = document.createElement('div');
+        div.className = 'suggestion-item';
+        div.innerHTML = `<strong>${tacoDB[k].nome}</strong>`;
+        div.onclick = () => { input.value = tacoDB[k].nome; container.innerHTML = ''; container.style.border = 'none'; };
+        container.appendChild(div);
+      });
+    }
+
+    function getByName(name) {
+      const n = name.toLowerCase().trim();
+      return tacoDB[Object.keys(tacoDB).find(k => tacoDB[k].nome.toLowerCase() === n)];
+    }
+
+    function calculate() {
+      const from = getByName(document.getElementById('fromName').value);
+      const to = getByName(document.getElementById('toName').value);
+      const grams = Number(document.getElementById('fromGrams').value);
+      const mode = document.getElementById('calcMode').value;
+      const res = document.getElementById('calcResult');
+      if (!from || !to) { res.innerHTML = '<div class="result-box" style="border-color:var(--primary);">❌ Alimento não encontrado na base.</div>'; return; }
+      const targetValue = (from[mode] / 100) * grams;
+      if (to[mode] === 0) { res.innerHTML = `<div class="result-box" style="border-color:var(--primary);">❌ O alimento destino (${to.nome}) não possui esse macronutriente (0g).</div>`; return; }
+      const destGrams = Math.round((targetValue / (to[mode] / 100)));
+      const dict = { kcal:'Calorias', prot:'Proteína', carb:'Carboidratos', lip:'Gordura' };
+      res.innerHTML = `
+        <div class="result-box" style="border-color:#2ecc71;">
+          <h4 style="color:#2ecc71; margin-bottom:1rem;">✅ Equivalência por ${dict[mode]}</h4>
+          <p><strong>Origem:</strong> ${grams}g de ${from.nome} = ${targetValue.toFixed(1)} ${mode==='kcal'?'kcal':'g'}</p>
+          <hr style="border:0; border-top:1px solid var(--border); margin:1rem 0;">
+          <p style="font-size:1.2rem;">Consuma <strong>${destGrams}g</strong> de ${to.nome}</p>
+        </div>`;
+    }
+  </script>
+</body>
+</html>
